@@ -1,0 +1,87 @@
+name: ci
+on:
+  push: {branches: [main], tags: ['v*']}
+  pull_request:
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            runner: ubuntu-22.04
+            suffix: ''
+          - name: linux-arm64
+            runner: ubuntu-22.04-arm
+            suffix: ''
+          - name: macos-x64
+            runner: macos-15-intel
+            suffix: ''
+          - name: macos-arm64
+            runner: macos-14
+            suffix: ''
+          - name: windows-x64
+            runner: windows-latest
+            suffix: .exe
+    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.name }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
+        with: {java-version: '21', distribution: graalvm-community, cache: maven}
+      - name: Build tools
+        if: runner.os == 'Linux'
+        run: timeout 180 sudo apt-get update -qq && timeout 180 sudo apt-get install -y zlib1g-dev
+      - name: Build tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install coreutils
+      - name: MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: JVM conformance
+        shell: bash
+        run: ./test.sh
+      - name: Native conformance
+        shell: bash
+        run: RUN_NATIVE=1 ./test.sh
+      - name: Linkage policy
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            readelf -d target/greeter
+            bad="$(readelf -d target/greeter | sed -n 's/.*Shared library: \[\(.*\)\].*/\1/p' | grep -Ev '^(libc\.so\.6|libm\.so\.6|libpthread\.so\.0|libdl\.so\.2|librt\.so\.1|ld-linux.*)$' || true)"
+            test -z "$bad" || { echo "Unexpected shared libraries: $bad"; exit 1; }
+          fi
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/greeter${{ matrix.suffix }} dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }}
+          sha256sum dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }} > dist/SHA256-${{ matrix.name }}.txt || shasum -a 256 dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }} > dist/SHA256-${{ matrix.name }}.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: lmcode-java-${{ matrix.name }}, path: dist/*}
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions: {contents: write}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {pattern: lmcode-java-*, path: release, merge-multiple: true}
+      - name: Assemble release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          rm -f SHA256SUMS SHA256-*.txt
+          sha256sum lmcode-java-* > SHA256SUMS
+      - name: Publish GitHub release
+        env: {GH_TOKEN: ${{ github.token }}}
+        run: timeout 120 gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" release/lmcode-java-* release/SHA256SUMS --title "$GITHUB_REF_NAME" --generate-notes

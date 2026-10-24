@@ -1,0 +1,8 @@
+/target/
+/bin/
+/images/
+/data/
+*.class
+.idea/
+.omx/
+/hello.dslb

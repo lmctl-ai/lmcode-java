@@ -1,0 +1,21 @@
+# A compact tour of the canonical standard catalog used by the greeter host.
+mkdir("images");
+mkdir("data");
+sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+let source = "function,str\nstr_len," + str(str_len("byte")) + "\nmath_sqrt," + str(math_sqrt(81)) + "\nmath_round," + str(math_round(2.5)) + "\n";
+file_write("data/standard_catalog.csv", source);
+check(str_contains(str_lower("JAVA"), "java"));
+check(math_sqrt(81) == 9);
+end _dsl_
+draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+plot.png("images/standard_catalog.png",900,560);
+plot.cmd("set datafile separator ','; set title 'Canonical lmcode standard catalog'; set ylabel 'result'; set style data histograms; set style fill solid 0.8; set boxwidth 0.65");
+plot.cmd("plot 'data/standard_catalog.csv' every ::1 using 2:xtic(1) title 'value' lc rgb '#d18b32'");
+plot.close();
+end _dsl_
+savedsl(sim, "data/standard_catalog.dslb");
+r = system ${dsl_cli(sim)} --dsl data/standard_catalog.dslb;
+assert(r.code == 0);
+savedsl(draw, "data/standard_catalog-draw.dslb");
+r = system ${dsl_cli(draw)} --dsl data/standard_catalog-draw.dslb;
+assert(r.code == 0);

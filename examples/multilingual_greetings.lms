@@ -1,0 +1,23 @@
+# VmString carries multilingual UTF-8 bytes without lossy transcoding.
+mkdir("images");
+mkdir("data");
+sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+let names = str_list().add("Hello").add("こんにちは").add("Привет").add("مرحبا");
+let out = "language,bytes\n";
+for (i in range(0, names.len())) { out = out + "greeting" + str(i) + "," + str(str_len(names.at(i))) + "\n"; }
+file_write("data/multilingual.csv", out);
+check(names.len() == 4);
+check(str_len(names.at(1)) == 15);
+end _dsl_
+draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+plot.png("images/multilingual_greetings.png",900,560);
+plot.cmd("set datafile separator ','; set title 'Multilingual greetings as raw UTF-8 bytes'; set ylabel 'byte length'; set style data histograms; set style fill solid 0.8; set boxwidth 0.65");
+plot.cmd("plot 'data/multilingual.csv' every ::1 using 2:xtic(1) title 'bytes' lc rgb '#3a8f72'");
+plot.close();
+end _dsl_
+savedsl(sim, "data/multilingual_greetings.dslb");
+r = system ${dsl_cli(sim)} --dsl data/multilingual_greetings.dslb;
+assert(r.code == 0);
+savedsl(draw, "data/multilingual_greetings-draw.dslb");
+r = system ${dsl_cli(draw)} --dsl data/multilingual_greetings-draw.dslb;
+assert(r.code == 0);

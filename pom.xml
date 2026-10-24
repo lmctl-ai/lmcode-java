@@ -1,0 +1,15 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.lmctl</groupId><artifactId>lmcode-java</artifactId><version>0.1.0</version>
+  <properties><maven.compiler.release>21</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+    <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><executions>
+      <execution><id>pins</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.PinVerifier</mainClass></configuration></execution>
+      <execution><id>gallery</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.GalleryVerifier</mainClass></configuration></execution>
+      <execution><id>self-test</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.SelfTest</mainClass><classpathScope>test</classpathScope></configuration></execution>
+      <execution><id>conformance</id><phase>verify</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.ConformanceRunner</mainClass><arguments><argument>conformance/vectors</argument><argument>conformance/stdlib-vectors</argument></arguments><classpathScope>test</classpathScope></configuration></execution>
+    </executions></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.4.2</version><configuration><archive><manifest><mainClass>io.lmctl.lmcode.examples.Greeter</mainClass></manifest></archive></configuration></plugin>
+  </plugins></build>
+</project>
