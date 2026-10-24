@@ -17,4 +17,5 @@ if [[ "${RUN_NATIVE:-0}" == 1 ]]; then
   timeout_cmd 600 "$native" --conformance conformance/vectors
   timeout_cmd 600 "$native" --conformance conformance/stdlib-vectors
 fi
+echo "Gallery source/images checked; regeneration requires optional lmscript and lmplot (examples/render-all.sh)."
 echo "lmcode-java verification passed"
