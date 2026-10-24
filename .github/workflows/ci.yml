@@ -65,7 +65,9 @@ jobs:
           cp target/greeter${{ matrix.suffix }} dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }}
           sha256sum dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }} > dist/SHA256-${{ matrix.name }}.txt || shasum -a 256 dist/lmcode-java-${{ matrix.name }}${{ matrix.suffix }} > dist/SHA256-${{ matrix.name }}.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with: {name: lmcode-java-${{ matrix.name }}, path: dist/*}
+        with:
+          name: lmcode-java-${{ matrix.name }}
+          path: dist/*
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -83,5 +85,6 @@ jobs:
           rm -f SHA256SUMS SHA256-*.txt
           sha256sum lmcode-java-* > SHA256SUMS
       - name: Publish GitHub release
-        env: {GH_TOKEN: ${{ github.token }}}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: timeout 120 gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" release/lmcode-java-* release/SHA256SUMS --title "$GITHUB_REF_NAME" --generate-notes
