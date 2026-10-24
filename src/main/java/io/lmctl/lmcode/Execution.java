@@ -33,8 +33,8 @@ public final class Execution {
             case LOAD_LOCAL -> { int s=r.u16(); Value v=locals[s]; if(v==null||v.kind==Value.Kind.NONE) throw error("local slot "+s+" read before assignment"); stack.add(v); }
             case STORE_LOCAL -> locals[r.u16()]=pop(stack);
             case LOAD_CTX -> { String n=p.contexts.get(r.u16()); Value v=ctx.get(n); if(v==null||v.kind==Value.Kind.NONE) throw error("context variable '"+n+"' was not provided by the host for this run"); stack.add(v); }
-            case CALL_FN -> { Registry.Binding b=p.imports.get(r.u16()); Value[] a=args(stack,r.u8()); Value v=b.callback.call(ctx,Value.none(),a); if(v!=null&&v.kind!=Value.Kind.NONE) stack.add(v); }
-            case CALL_METHOD -> { Registry.Binding b=p.imports.get(r.u16()); Value[] a=args(stack,r.u8()); Value self=pop(stack); if(self.kind!=Value.Kind.OBJ || !self.objectType().equals(b.type)) throw error("method "+b.type+"."+b.name+" called on a "+(self.kind==Value.Kind.OBJ?self.objectType():self.kindName())); Value v=b.callback.call(ctx,self,a); if(v!=null&&v.kind!=Value.Kind.NONE) stack.add(v); }
+            case CALL_FN -> { Registry.Binding b=p.imports.get(r.u16()); Value[] a=args(stack,r.u8()); Value v=b.callback.call(ctx,Value.none(),a); if(v!=null&&v.kind!=Value.Kind.NONE){if(v.kind==Value.Kind.STR)ctx.charge(v.asString().length());stack.add(v);} }
+            case CALL_METHOD -> { Registry.Binding b=p.imports.get(r.u16()); Value[] a=args(stack,r.u8()); Value self=pop(stack); if(self.kind!=Value.Kind.OBJ || !self.objectType().equals(b.type)) throw error("method "+b.type+"."+b.name+" called on a "+(self.kind==Value.Kind.OBJ?self.objectType():self.kindName())); Value v=b.callback.call(ctx,self,a); if(v!=null&&v.kind!=Value.Kind.NONE){if(v.kind==Value.Kind.STR)ctx.charge(v.asString().length());stack.add(v);} }
             case EQ, NE -> { Value b=pop(stack), a=pop(stack); boolean eq=equal(a,b); stack.add(Value.ofBool(op==Op.EQ?eq:!eq)); }
             case NOT -> stack.add(Value.ofBool(!unary(stack,Value.Kind.BOOL,"! applied to a").asBool()));
             case JUMP -> jump(r,r.i32(),p.code.length);
