@@ -20,6 +20,7 @@ public final class Registry {
  public List<String> signatures(){List<String> out=new ArrayList<>(bindings.keySet());contexts.forEach((n,t)->out.add("context "+n+": "+t));Collections.sort(out);return List.copyOf(out);}
  public List<String> stdSignatures(){return builtins.stream().sorted().toList();} public List<String> hostSignatures(){return signatures().stream().filter(s->!builtins.contains(s)).toList();}
  public void checkSchemaSignatures(Collection<String> signatures){Set<String> wanted=new TreeSet<>(signatures);wanted.addAll(builtins);Set<String> actual=new TreeSet<>(signatures());if(!actual.equals(wanted)){Set<String> missing=new TreeSet<>(wanted);missing.removeAll(actual);Set<String> extra=new TreeSet<>(actual);extra.removeAll(wanted);throw new VmException("LOAD_UNBOUND","registry schema signatures differ: missing ["+String.join(", ",missing)+"], extra ["+String.join(", ",extra)+"]");}}
+ public void checkSchemaSignatures(byte[] schema){checkSchemaSignatures(SchemaSignatures.from(schema));}
  public boolean matchesSchemaSignatures(Collection<String> s){try{checkSchemaSignatures(s);return true;}catch(VmException e){return false;}}
  public void beginBuiltinRegistration(){registeringBuiltins=true;} public void endBuiltinRegistration(){registeringBuiltins=false;} public void markDefaultCollections(){defaultCollections=true;}
  synchronized void enterRun(Context ctx){if(active)throw VmException.host("registry run is already active");active=true;try{if(defaultCollections)Stdlib.beginRun(ctx);}catch(RuntimeException e){active=false;throw e;}}
