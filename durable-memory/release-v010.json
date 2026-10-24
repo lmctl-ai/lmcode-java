@@ -1,0 +1,50 @@
+{
+  "release": "https://github.com/lmctl-ai/lmcode-java/releases/tag/v0.1.0",
+  "tag": "v0.1.0",
+  "main_ci": "https://github.com/lmctl-ai/lmcode-java/actions/runs/40138016505",
+  "tag_ci": "https://github.com/lmctl-ai/lmcode-java/actions/runs/40138341440",
+  "platforms": [
+    "linux-x64",
+    "linux-arm64",
+    "macos-x64",
+    "macos-arm64",
+    "windows-x64"
+  ],
+  "jvm_vectors": 128,
+  "native_vectors": 128,
+  "unit_groups": 6,
+  "gallery_examples": 6,
+  "fresh_native_autoruns": 6,
+  "assets": [
+    {
+      "name": "lmcode-java-linux-arm64",
+      "bytes": 18561328,
+      "sha256": "74d226920ae49fb4540afcab2f5458a5512194f8fe37954626719189ad35152a"
+    },
+    {
+      "name": "lmcode-java-linux-x64",
+      "bytes": 19073144,
+      "sha256": "07f431543f9892d79a098ab3deb22c7e167aacf4d84feaf934862b17ee3df14b"
+    },
+    {
+      "name": "lmcode-java-macos-arm64",
+      "bytes": 18139912,
+      "sha256": "01cff85714cbd950c8876b823dec6d9a11474e7cca4f43d6417eeec8b36f5b21"
+    },
+    {
+      "name": "lmcode-java-macos-x64",
+      "bytes": 17865976,
+      "sha256": "2d007982cad001d11b899f70595072462cc91d98ebc89748d753a62ae7e228a0"
+    },
+    {
+      "name": "lmcode-java-windows-x64.exe",
+      "bytes": 18636800,
+      "sha256": "843759ea317c4222a79922d165606b90f34c54add3647ce023fc66435fe60daa"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 450,
+      "sha256": "79905836bf237de0bbc83dfbefa24d66d4379d3cbb3e95bb530a330cb3daa53f"
+    }
+  ]
+}
