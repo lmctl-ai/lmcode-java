@@ -40,8 +40,23 @@ final class StdString {
   private static Long parseInt(VmString x){try{String z=new String(b(x),StandardCharsets.US_ASCII);if(!z.matches("[+-]?[0-9]+"))return null;return Long.parseLong(z);}catch(Exception e){return null;}}
   private static Double parseFloat(VmString x){try{String z=new String(b(x),StandardCharsets.US_ASCII);if(!z.matches("[+-]?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][+-]?[0-9]+)?"))return null;double d=Double.parseDouble(z);return Double.isFinite(d)&&(d!=0||z.matches("[+-]?0+(\\.0*)?([eE][+-]?[0-9]+)?"))?d:null;}catch(Exception e){return null;}}
   private static long orZero(Long x){return x==null?0:x;} private static double orZeroD(Double x){return x==null?0:x;}
-  private static boolean glob(byte[] text,byte[] pat){int t=0,p=0,star=-1,mark=0;long[] work={0};while(t<text.length){step(work);if(p<pat.length&&pat[p]=='*'){star=p++;mark=t;}else if(p<pat.length&&matchToken(pat,p,text[t],work)){p=nextToken(pat,p);t++;}else if(star>=0){p=star+1;t=++mark;}else return false;}while(p<pat.length&&pat[p]=='*'){step(work);p++;}return p==pat.length;}
+  private static boolean glob(byte[] text,byte[] pat){
+    int t=0,p=0,star=-1,mark=0;long[] work={0};int[] next={0};
+    while(t<text.length){step(work);if(p<pat.length&&pat[p]=='*'){star=p++;mark=t;}
+      else if(p<pat.length&&matchToken(pat,p,text[t]&255,next,work)){p=next[0];t++;}
+      else if(star>=0){p=star+1;t=++mark;}else return false;}
+    while(p<pat.length&&pat[p]=='*'){step(work);p++;}return p==pat.length;
+  }
   private static void step(long[] work){if(work[0]==(1L<<27))throw VmException.host("str_match: pattern exceeds the 2^27 work limit");work[0]++;}
-  private static boolean matchToken(byte[]p,int i,byte c,long[] work){if(p[i]=='?' )return true;if(p[i]=='\\'&&i+1<p.length)return p[i+1]==c;if(p[i]=='['){int q=i+1;boolean neg=q<p.length&&p[q]=='!';if(neg)q++;boolean hit=false,first=true;while(q<p.length&&(p[q]!=']'||first)){step(work);first=false;byte lo=p[q++];if(lo=='\\'&&q<p.length)lo=p[q++];if(q+1<p.length&&p[q]=='-'&&p[q+1]!=']'){q++;byte hi=p[q++];if(lo<=hi&&c>=lo&&c<=hi)hit=true;}else if(c==lo)hit=true;}if(q<p.length)return neg?!hit:hit;return p[i]==c;}return p[i]==c;}
-  private static int nextToken(byte[]p,int i){if(p[i]=='\\'&&i+1<p.length)return i+2;if(p[i]=='['){int q=i+1;if(q<p.length&&p[q]=='!')q++;int first=q;while(q<p.length&&(p[q]!=']'||q==first)){if(p[q]=='\\'&&q+1<p.length)q+=2;else q++;}return q<p.length?q+1:i+1;}return i+1;}
+  private static boolean matchToken(byte[] p,int i,int c,int[] next,long[] work){
+    if(p[i]=='\\'&&i+1<p.length){next[0]=i+2;return(p[i+1]&255)==c;}
+    if(p[i]=='?'){next[0]=i+1;return true;}
+    if(p[i]=='['){int q=i+1;boolean negate=q<p.length&&p[q]=='!';if(negate)q++;int first=q;boolean hit=false;
+      while(q<p.length&&(p[q]!=']'||q==first)){step(work);int lo=p[q++]&255;if(lo=='\\'&&q<p.length)lo=p[q++]&255;
+        if(q+1<p.length&&p[q]=='-'&&p[q+1]!=']'){q++;int hi=p[q++]&255;if(hi=='\\'&&q<p.length)hi=p[q++]&255;if(lo<=hi&&c>=lo&&c<=hi)hit=true;}
+        else if(lo==c)hit=true;}
+      if(q<p.length){next[0]=q+1;return hit!=negate;}
+    }
+    next[0]=i+1;return(p[i]&255)==c;
+  }
 }

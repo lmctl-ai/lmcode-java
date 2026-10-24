@@ -38,6 +38,11 @@ public final class SelfTest {
     require(s.bytes()[1] == 0 && s.length() == 3, "VmString.bytes must be defensive");
     require(s.toString().length() > 0, "invalid UTF-8 must remain representable");
     require(new VmString(new byte[]{'a', 0, 'b'}).equals(new VmString(new byte[]{'a', 0, 'b'})), "NUL bytes compare by value");
+    Registry registry=new Registry();Context context=new Context();Registry.Binding match=registry.resolve("fn str_match(string, string) -> bool");
+    VmString pattern=new VmString(new byte[]{'[',127,'-',(byte)129,']'});
+    for(int i=0;i<256;i++)require(match.callback.call(context,Value.none(),new Value[]{Value.ofString(new VmString(new byte[]{(byte)i})),Value.ofString(pattern)}).asBool()==(i>=127&&i<=129),"glob ranges use unsigned bytes");
+    require(!match.callback.call(context,Value.none(),new Value[]{Value.ofString("["),Value.ofString("[abc")}).asBool(),"unterminated class leaves remaining literal tokens");
+    require(match.callback.call(context,Value.none(),new Value[]{Value.ofString("[abc"),Value.ofString("[abc")}).asBool(),"unterminated class is a literal bracket");
   }
 
   private static void formatting() {
