@@ -22,3 +22,5 @@ Technical documentation, architecture decisions, and operational guides for `lmc
 
 ## Releases
 Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5 native platform binaries with SHA256SUMS.
+
+- `catalog-catchup-v011.md` — current53b9bdf pins,169 vectors, managed byte/file contracts and v0.1.1 proof.
