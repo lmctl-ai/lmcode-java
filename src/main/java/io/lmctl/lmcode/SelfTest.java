@@ -26,6 +26,8 @@ public final class SelfTest {
     try { checks++; collections(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; vmCaps(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; malformedWhile(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; FileContractChecks.run(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; CollectionContractChecks.run(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     System.out.println(failures == 0 ? "PASS " + checks : "FAIL " + failures + "/" + checks);
     return failures;
   }
@@ -39,6 +41,11 @@ public final class SelfTest {
     require(s.toString().length() > 0, "invalid UTF-8 must remain representable");
     require(new VmString(new byte[]{'a', 0, 'b'}).equals(new VmString(new byte[]{'a', 0, 'b'})), "NUL bytes compare by value");
     Registry registry=new Registry();Context context=new Context();Registry.Binding match=registry.resolve("fn str_match(string, string) -> bool");
+    Registry.Binding validFloat=registry.resolve("fn str_is_float(string) -> bool");Registry.Binding toFloat=registry.resolve("fn str_to_float(string) -> float");
+    for(String zero:List.of("+.0","-.0","0.e-999",".000e999"))require(validFloat.callback.call(context,Value.none(),new Value[]{Value.ofString(zero)}).asBool(),"decimal zero grammar: "+zero);
+    require(Double.doubleToRawLongBits(toFloat.callback.call(context,Value.none(),new Value[]{Value.ofString("-.0")}).asFloat())==Long.MIN_VALUE,"negative fractional zero sign");
+    require(!validFloat.callback.call(context,Value.none(),new Value[]{Value.ofString("1e-999")}).asBool(),"nonzero underflow is invalid");
+
     VmString pattern=new VmString(new byte[]{'[',127,'-',(byte)129,']'});
     for(int i=0;i<256;i++)require(match.callback.call(context,Value.none(),new Value[]{Value.ofString(new VmString(new byte[]{(byte)i})),Value.ofString(pattern)}).asBool()==(i>=127&&i<=129),"glob ranges use unsigned bytes");
     require(!match.callback.call(context,Value.none(),new Value[]{Value.ofString("["),Value.ofString("[abc")}).asBool(),"unterminated class leaves remaining literal tokens");
@@ -48,6 +55,8 @@ public final class SelfTest {
   private static void formatting() {
     require(Formatting.formatG15(-0.0).equals("-0"), "negative zero formatting");
     require(Formatting.formatG15(Double.NaN).equals("nan"), "NaN formatting");
+    require(Formatting.formatG15(Double.MIN_VALUE).equals("4.94065645841247e-324"), "subnormal formats exact binary64 digits");
+    require(Formatting.formatG15(-Double.MIN_VALUE).equals("-4.94065645841247e-324"), "negative subnormal formatting");
     require(Formatting.formatG15(Double.POSITIVE_INFINITY).equals("inf"), "infinity formatting");
     require(Formatting.formatG15(1e-5).equals("1e-05"), "small scientific formatting");
     require(Formatting.formatG15(1e-4).equals("0.0001"), "fixed notation threshold");

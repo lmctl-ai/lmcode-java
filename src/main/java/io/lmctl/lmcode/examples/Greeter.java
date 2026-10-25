@@ -5,7 +5,7 @@ import java.nio.file.*;
 import java.util.*;
 /** Minimal typed Java host, also exposing the same test entry points in native builds. */
 public final class Greeter {
- public static final String VERSION="0.1.0";
+ public static final String VERSION="0.1.1";
  private static byte[] resource(String name)throws IOException {try(InputStream in=Greeter.class.getResourceAsStream("/"+name)){if(in==null)throw new IOException("missing embedded "+name);return in.readAllBytes();}}
  public static int run(String[] args)throws IOException {
   if(args.length==1&&args[0].equals("--version")){System.out.println("lmcode-java "+VERSION);return 0;}

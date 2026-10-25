@@ -7,7 +7,7 @@ if [[ "${RUN_NATIVE:-0}" == 1 ]]; then
   timeout_cmd 1800 scripts/build-native.sh
   native=target/greeter
   [[ -f "$native" ]] || native=target/greeter.exe
-  test "$(timeout_cmd 30 "$native" --version)" = "lmcode-java 0.1.0"
+  test "$(timeout_cmd 30 "$native" --version)" = "lmcode-java 0.1.1"
   timeout_cmd 30 "$native" --dsl-schema --json > target/native-schema.json
   cmp src/main/resources/greeter.schema.json target/native-schema.json
   timeout_cmd 30 "$native" --notices > target/native-notices.txt
