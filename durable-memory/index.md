@@ -14,6 +14,8 @@ Technical documentation, architecture decisions, and operational guides for `lmc
 | [07-open-items.md](07-open-items.md) | Remaining distribution and platform items |
 | [autorun-v010.json](autorun-v010.json) | v0.1.0 fresh-directory autorun verification manifest |
 | [release-v010.json](release-v010.json) | v0.1.0 release assets and platform checksums |
+| [autorun-v011.json](autorun-v011.json) | v0.1.1 six fresh-cache native autorun checks |
+| [release-v011.json](release-v011.json) | v0.1.1 release assets, catalog counts and platform checks |
 
 ## Adding an example or host function
 1. Add an example under `examples/` with compiled `.dslb` bytecode.

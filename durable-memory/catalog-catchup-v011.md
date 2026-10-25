@@ -28,3 +28,18 @@ check the full expanded path prefix and nonempty reason, matching the C++ runner
 Local JVM and GraalVM CE21 native greeter pass51/51 core,118/118 standard and eight
 regression groups. Main CI https://github.com/lmctl-ai/lmcode-java/actions/runs/40147670642
 is green across all5 platforms, including Windows native vector execution.
+
+Release [v0.1.1](https://github.com/lmctl-ai/lmcode-java/releases/tag/v0.1.1)
+is published with five native binaries and SHA256SUMS. All five platform jobs and
+publication passed in [tag CI](https://github.com/lmctl-ai/lmcode-java/actions/runs/40147868482).
+Windows job 121032992923 explicitly reports PASS 51/51 and PASS 118/118 after
+native compilation. The downloaded Linux x64 binary independently passes both
+suites and eight regression groups; embedded notices match the source. All five
+asset checksums match. Both Linux architectures require at most GLIBC_2.34 symbols
+and pass the dynamic glibc dependency allowlist (supported minimum remains 2.35).
+
+All six README examples were autorun from separate empty directories and empty
+tool caches, with no host on PATH. Each installed the exact published v0.1.1
+Linux x64 binary and generated its expected PNG. See release-v011.json and
+autorun-v011.json for durable machine-readable evidence. Only the lmcode-java row
+of the shared ROADMAP.md was updated.

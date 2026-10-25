@@ -1,0 +1,77 @@
+{
+  "release": "v0.1.1",
+  "cases": [
+    {
+      "example": "byte_strings",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/byte_strings.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 24625
+    },
+    {
+      "example": "ordered_map",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/ordered_map.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 26005
+    },
+    {
+      "example": "rounding_wrap",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/rounding_wrap.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 25004
+    },
+    {
+      "example": "multilingual_greetings",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/multilingual_greetings.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 23605
+    },
+    {
+      "example": "file_pipeline",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/file_pipeline.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 33260
+    },
+    {
+      "example": "standard_catalog",
+      "url": "https://raw.githubusercontent.com/lmctl-ai/lmcode-java/main/examples/standard_catalog.lms",
+      "version": "lmcode-java 0.1.1",
+      "sha256": "285b9a439b28810d0779b277b5aff9df5d52a83cd99dc9e7e04dc4c9bcff9ca8",
+      "exit_code": 0,
+      "started_empty": true,
+      "fresh_cache": true,
+      "no_host_on_path": true,
+      "github_token_source": "gh auth token",
+      "png_bytes": 22393
+    }
+  ]
+}
