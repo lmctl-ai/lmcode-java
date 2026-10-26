@@ -24,5 +24,6 @@ Technical documentation, architecture decisions, and operational guides for `lmc
 
 ## Releases
 Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5 native platform binaries with SHA256SUMS.
+- [update-sample-suite.md](update-sample-suite.md): canonical sample-suite update and all-port verification rule.
 
 - `catalog-catchup-v011.md` — current53b9bdf pins,169 vectors, managed byte/file contracts and v0.1.1 proof.
