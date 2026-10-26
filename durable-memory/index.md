@@ -11,6 +11,7 @@ Technical documentation, architecture decisions, and operational guides for `lmc
 | [04-build-test.md](04-build-test.md) | Pinned conformance vectors and GraalVM native builds |
 | [05-ci-release.md](05-ci-release.md) | 5-platform matrix and release gate |
 | [06-examples.md](06-examples.md) | Reproducible examples and demo gallery |
+| [06-stdlib-catalog.md](06-stdlib-catalog.md) | Canonical standard catalog v1–v3 (181 signatures) |
 | [07-open-items.md](07-open-items.md) | Remaining distribution and platform items |
 | [autorun-v010.json](autorun-v010.json) | v0.1.0 fresh-directory autorun verification manifest |
 | [release-v010.json](release-v010.json) | v0.1.0 release assets and platform checksums |
