@@ -28,3 +28,4 @@ Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5
 - [update-sample-suite.md](update-sample-suite.md): canonical sample-suite update and all-port verification rule.
 
 - `catalog-catchup-v011.md` — current53b9bdf pins,169 vectors, managed byte/file contracts and v0.1.1 proof.
+- [rule-methods-pin.md](rule-methods-pin.md) — compiler R47/R48 (schema `interfaces`, `@NAME`/`implements`): no runtime change, pin test and fixture regeneration.
