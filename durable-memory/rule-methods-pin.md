@@ -3,7 +3,7 @@
 The compiler gained rule methods: `@NAME` before a top-level `fn` plus
 `implements NAME` bound to a schema SAM interface (R47), and an optional
 top-level `"interfaces"` key in `dsl.schema: 2` schemas that joins the schema
-sha256 (R48). Bytecode format is unchanged (DSLB v5).
+sha256 (R48). Bytecode is DSLB v6 since R49: annotated rules also emit entries (see 06-v6-entry-table.md).
 
 No runtime change was needed, mirroring lmcode-cpp: the loader binds the
 schema by exact sha256 bytes (Program.load), and SchemaSignatures/Json read
