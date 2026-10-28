@@ -31,7 +31,7 @@ The SDK has no runtime dependencies beyond the JDK. It uses byte strings through
 
 ## Status
 
-Version 0.1.1 implements bytecode v5 only; other bytecode versions are rejected. All 51 core and 267 standard-library vectors (181 canonical v3 signatures) run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
+Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 70 core and 267 standard-library vectors (181 canonical v3 signatures) run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
 
 Linux builds target dynamic glibc with a minimum glibc version of 2.35. They do not support musl or alternate libc implementations. Linux C++ runtimes and zlib are static; glibc remains dynamic. Windows native executables use the Microsoft Visual C++ x64 runtime (`VCRUNTIME140.dll` and `VCRUNTIME140_1.dll`).
 
@@ -73,3 +73,20 @@ program.run(context, host);
 The Maven artifact is built locally (`mvn install`) or the SDK sources can be vendored; Maven Central publication is not part of this release.
 
 The SDK is MIT licensed. Third-party and toolchain notices are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+
+## Rule entries (DSLB v6)
+
+Annotated functions with an implements interface produce entries in source order.
+Program.entries() returns an immutable List of Program.Entry records with name,
+annotation, iface (canonical interface text), params (type names), and returns.
+Program.call(index, context, registry, List<Value> args) executes one entry without
+requiring run() first. run() still executes only the body. Both use the same interpreter,
+registry lifecycle, budgets and source-location handling; each call gets fresh locals.
+Argument count mismatch is RUN_HOST: call entry 'NAME' expects N argument(s); found M.
+Argument kinds and the returned value are not type-checked; void returns Value.none().
+The loader accepts only v6 and verifies each entry's parameter layout, local indexes,
+jumps, loop structure and HALT stack depth. No registry interface registration is needed.
+
+The shared dsl-conformance/3 runner enumerates entries without executing the body;
+for call/call_error/call_error_at fixtures it executes the body once before the call.
+Core and stdlib pins track the same C++ reference corpus; sample repos migrate separately.
