@@ -1,19 +1,19 @@
 # Raw-byte file helpers make a tiny reproducible CSV pipeline with no host database.
 mkdir("images");
 mkdir("data");
-sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+sim = _lmcode_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
 file_write("data/pipeline.csv", "step,value\nparse,1\nverify,2\nrun,3\n");
 let lines = file_lines("data/pipeline.csv");
 file_append("data/pipeline.csv", "report,4\n");
 check(file_exists("data/pipeline.csv"));
 check(lines.len() == 5);
-end _dsl_
-draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+end _lmcode_
+draw = _lmcode_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
 plot.png("images/file_pipeline.png",900,560);
 plot.cmd("set datafile separator ','; set title 'Raw-byte file pipeline'; set xlabel 'step'; set ylabel 'value'; set grid");
 plot.cmd("plot 'data/pipeline.csv' every ::1 using 2:xtic(1) with linespoints lw 3 pt 7 lc rgb '#7851a9' notitle");
 plot.close();
-end _dsl_
+end _lmcode_
 savedsl(sim, "data/file_pipeline.dslb");
 r = system ${dsl_cli(sim)} --dsl data/file_pipeline.dslb;
 assert(r.code == 0);

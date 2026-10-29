@@ -1,21 +1,21 @@
 # StrMap preserves insertion order while updates retain the original key position.
 mkdir("images");
 mkdir("data");
-sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+sim = _lmcode_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
 let m = str_map().set("compile", "JVM").set("native", "GraalVM").set("bytes", "immutable").set("native", "Native Image");
 file_write("data/ordered_map.csv", "key,value\n" + m.key_at(0) + ",1\n" + m.key_at(1) + ",2\n" + m.key_at(2) + ",3\n");
 file_write("data/ordered_map.check", "entries=" + str(m.len()) + " key1=" + m.key_at(1));
 check(m.len() == 3);
 check(m.key_at(1) == "native");
-end _dsl_
-draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+end _lmcode_
+draw = _lmcode_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
 plot.png("images/ordered_map.png", 900, 560);
 plot.cmd("set datafile separator ','");
 plot.cmd("set title 'Insertion-ordered host map'; set ylabel 'insertion position'; set style data histograms; set style fill solid 0.75; set yrange [0:4]");
 plot.cmd("set xtics rotate by -25");
 plot.cmd("plot 'data/ordered_map.csv' every ::1 using 2:xtic(1) title 'insertion order' lc rgb '#527da8'");
 plot.close();
-end _dsl_
+end _lmcode_
 savedsl(sim, "data/ordered_map.dslb");
 r = system ${dsl_cli(sim)} --dsl data/ordered_map.dslb;
 assert(r.code == 0);

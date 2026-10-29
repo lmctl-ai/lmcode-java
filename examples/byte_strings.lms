@@ -1,15 +1,15 @@
 # Raw bytes stay byte-oriented: this Japanese greeting has 15 UTF-8 bytes and 5 characters.
 mkdir("images");
 mkdir("data");
-sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+sim = _lmcode_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
 let greeting = "こんにちは";
 let ascii = "hello";
 file_write("data/byte_lengths.csv", "label,length\nASCII," + str(str_len(ascii)) + "\nUTF8," + str(str_len(greeting)) + "\n");
 file_write("data/byte_lengths.txt", "ascii=" + str(str_len(ascii)) + " utf8=" + str(str_len(greeting)));
 check(str_len(ascii) == 5);
 check(str_len(greeting) == 15);
-end _dsl_
-draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+end _lmcode_
+draw = _lmcode_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
 plot.png("images/byte_strings.png", 900, 560);
 plot.cmd("set datafile separator ','");
 plot.cmd("set title 'lmcode strings preserve UTF-8 bytes'");
@@ -19,7 +19,7 @@ plot.cmd("set style data histograms; set style fill solid 0.75; set boxwidth 0.6
 plot.cmd("set xtics rotate by -20");
 plot.cmd("plot 'data/byte_lengths.csv' every ::1 using 2:xtic(1) title 'bytes' lc rgb '#35618f'");
 plot.close();
-end _dsl_
+end _lmcode_
 savedsl(sim, "data/byte_strings.dslb");
 r = system ${dsl_cli(sim)} --dsl data/byte_strings.dslb;
 assert(r.code == 0);

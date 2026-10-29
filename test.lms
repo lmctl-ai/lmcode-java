@@ -1,0 +1,30 @@
+# Run from the checkout root with lmctl test.lms or lmscript test.lms.
+fn step(command, timeout) {
+  result = system(command, timeout);
+  print(result.stdout);
+  print(result.stderr);
+  assert(result.code == 0 && !result.timed_out, "verification failed: " + json_stringify(command));
+  return result;
+}
+step(["bash", "scripts/verify-jvm.sh"], 1200000);
+step(["java", "-cp", "target/classes", "io.lmctl.lmcode.examples.Greeter", "--dsl", "examples/greeter/hello.dslb"], 30000);
+# The shell resolves npm's lmscript shim on Windows as well as Unix.
+step(["bash", "-c", "lmscript --no-preflight examples/rule-entries/rules.lms target/rule-entries.dslb"], 30000);
+result = step(["java", "-cp", "target/classes", "io.lmctl.lmcode.examples.RuleEntries", "target/rule-entries.dslb", "examples/rule-entries/schema.json"], 30000);
+assert(trim(result.stdout) == "increment = 42", "rule interface result differs");
+if (env("RUN_NATIVE") == "1") {
+  step(["bash", "scripts/build-native.sh"], 1800000);
+  executable = path_join(Directory, "target/greeter");
+  if (env("RUNNER_OS") == "Windows") { executable = executable + ".exe"; }
+  result = step([executable, "--version"], 30000);
+  assert(trim(result.stdout) == "lmcode-java 0.1.1", "native version differs");
+  result = step([executable, "--dsl-schema", "--json"], 30000);
+  assert(result.stdout == read_file("src/main/resources/greeter.schema.json"), "native schema differs");
+  result = step([executable, "--notices"], 30000);
+  assert(result.stdout == read_file("THIRD_PARTY_NOTICES"), "native notices differ");
+  step([executable, "--dsl", "examples/greeter/hello.dslb"], 30000);
+  step([executable, "--self-test"], 300000);
+  step([executable, "--conformance", "conformance/vectors"], 600000);
+  step([executable, "--conformance", "conformance/stdlib-vectors"], 600000);
+}
+println("PASS Java SDK and annotated interface example");

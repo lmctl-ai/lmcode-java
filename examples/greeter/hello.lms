@@ -1,7 +1,7 @@
-p = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+p = _lmcode_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
 greet("Java 21");
 greet("世界");
-end _dsl_
+end _lmcode_
 savedsl(p, "hello.dslb");
 r = system ${dsl_cli(p)} --dsl hello.dslb;
 assert(r.code == 0);

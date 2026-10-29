@@ -1,5 +1,9 @@
 name: ci
 on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
   workflow_dispatch:
 permissions: {contents: read}
 concurrency:
@@ -33,6 +37,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
         with: {java-version: '21', distribution: graalvm-community, cache: maven}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: {node-version: '24'}
+      - name: Install lmctl and lmscript
+        shell: bash
+        run: npm install -g @lmctl-ai/lmctl
       - name: Build tools
         if: runner.os == 'Linux'
         run: timeout 180 sudo apt-get update -qq && timeout 180 sudo apt-get install -y zlib1g-dev
@@ -45,10 +54,10 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       - name: JVM conformance
         shell: bash
-        run: ./test.sh
+        run: lmscript --no-preflight test.lms
       - name: Native conformance
         shell: bash
-        run: RUN_NATIVE=1 ./test.sh
+        run: RUN_NATIVE=1 lmscript --no-preflight test.lms
       - name: Linkage policy
         shell: bash
         run: |

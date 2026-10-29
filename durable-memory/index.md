@@ -29,3 +29,4 @@ Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5
 
 - `catalog-catchup-v011.md` — current53b9bdf pins,169 vectors, managed byte/file contracts and v0.1.1 proof.
 - [rule-methods-pin.md](rule-methods-pin.md) — compiler R47/R48 (schema `interfaces`, `@NAME`/`implements`): no runtime change, pin test and fixture regeneration.
+- [08-lmscript-tests.md](08-lmscript-tests.md): lmscript test entry point, annotated interface example and native sample release convention.

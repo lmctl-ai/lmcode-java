@@ -1,20 +1,20 @@
 # Numeric host semantics: ties round away from zero and integer arithmetic wraps at int64.
 mkdir("images");
 mkdir("data");
-sim = _dsl_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
+sim = _lmcode_ cli="lmcode-java" install="github:lmctl-ai/lmcode-java@latest";
 let rows = "value,rounded\n-1.5," + str(math_round(-1.5)) + "\n-0.5," + str(math_round(-0.5)) + "\n0.5," + str(math_round(0.5)) + "\n1.5," + str(math_round(1.5)) + "\n";
 file_write("data/rounding.csv", rows);
 file_write("data/rounding.check", "wrap=" + str(math_pow(2, 63)));
 check(math_round(0.5) == 1.0);
 check(math_pow(2, 63) < 0);
-end _dsl_
-draw = _dsl_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
+end _lmcode_
+draw = _lmcode_ cli="lmplot" install="github:lmctl-ai/lmplot@latest";
 plot.png("images/rounding_wrap.png",900,560);
 plot.cmd("set datafile separator ','; set title 'Ties away from zero'; set xlabel 'input'; set ylabel 'rounded output'; set grid");
 plot.cmd("set xrange [-2:2]; set yrange [-2.5:2.5]");
 plot.cmd("plot 'data/rounding.csv' every ::1 using 1:2 with impulses lw 4 lc rgb '#b44646' notitle, 0 with lines lc rgb '#333333'");
 plot.close();
-end _dsl_
+end _lmcode_
 savedsl(sim, "data/rounding_wrap.dslb");
 r = system ${dsl_cli(sim)} --dsl data/rounding_wrap.dslb;
 assert(r.code == 0);

@@ -90,3 +90,23 @@ jumps, loop structure and HALT stack depth. No registry interface registration i
 The shared dsl-conformance/3 runner enumerates entries without executing the body;
 for call/call_error/call_error_at fixtures it executes the body once before the call.
 Core and stdlib pins track the same C++ reference corpus; sample repos migrate separately.
+
+## lmscript tests and annotated interfaces
+
+```sh
+npm install -g @lmctl-ai/lmctl
+lmctl test.lms
+# Equivalent: lmscript test.lms
+RUN_NATIVE=1 lmscript --no-preflight test.lms
+```
+
+The package installs both executables. Both run `.lms` files; `lmctl` also
+accepts URLs ending in `.lms`. Repository tests need the local checkout.
+`test.lms` drives Maven's SDK/conformance checks and the native checks when enabled.
+
+[examples/rule-entries/rules.lms](examples/rule-entries/rules.lms) defines an
+`@increment` function implementing the schema's `Score(int) -> int` interface.
+[RuleEntries.java](src/main/java/io/lmctl/lmcode/examples/RuleEntries.java)
+loads it, selects the annotation, calls the entry with 41, and obtains 42.
+The test compiles and executes this example. The Java, Kotlin and Scala sample
+repositories demonstrate object interfaces and publish tested GraalVM executables.
