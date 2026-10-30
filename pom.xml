@@ -7,6 +7,7 @@
     <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><executions>
       <execution><id>pins</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.PinVerifier</mainClass></configuration></execution>
       <execution><id>gallery</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.GalleryVerifier</mainClass></configuration></execution>
+      <execution><id>template-conformance</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.TemplateConformance</mainClass><classpathScope>test</classpathScope></configuration></execution>
       <execution><id>self-test</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.SelfTest</mainClass><classpathScope>test</classpathScope></configuration></execution>
       <execution><id>rule-methods-pin</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.RuleMethodsPin</mainClass></configuration></execution>
       <execution><id>conformance</id><phase>verify</phase><goals><goal>java</goal></goals><configuration><mainClass>io.lmctl.lmcode.ConformanceRunner</mainClass><arguments><argument>conformance/vectors</argument><argument>conformance/stdlib-vectors</argument></arguments><classpathScope>test</classpathScope></configuration></execution>
