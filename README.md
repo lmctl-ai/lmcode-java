@@ -115,48 +115,72 @@ repositories demonstrate object interfaces and publish tested GraalVM executable
 
 The standard `template_render(string, Json) -> string` function renders arbitrary text with nested context, indexed lists, loops and boolean conditions. Inserted values remain literal. See the [portable contract and examples](std/template.md).
 
-## Invocation results (DSLB v6)
+## Invocation results and envelopes
 
-`Registry.setResultSink(ResultSink)` binds one host-owned sink before the body.
-Keep it through the selected entry calls; reset it only before the next logical
-program. The default registry installs all 24 `lmcode_return_*` signatures:
-set/put for int, float, bool, string, Json, the three typed lists and three typed
-maps; plus root null and field null. A missing configured sink is RUN_HOST,
-`lmcode return: no result sink`. There is no global/default sink.
+The native host creates `InvocationResults.fromCommand(parsedFiles)` after parsing
+`--lmcode` occurrences. It reads the private `LMCODE_INVOCATION_FILE` descriptor
+when present, validates registrations before dispatch, and otherwise uses CLI order
+(one occurrence is single mode; repeated filenames retain separate slots).
 
 ```java
-ResultSink sink = new ResultSink();
-Registry registry = new Registry().setResultSink(sink);
-// load the program against this registry, then:
-sink.reset();
-program.run(context, registry);
-// perform selected program.call(...) entries and application validation here
-Reports.writeResultFrame(System.out, sink); // success path ONLY
+InvocationResults results = InvocationResults.fromCommand(parsedFiles);
+Registry registry = new Registry();
+for (var part : results.registrations()) {
+    String phase = "load";
+    try {
+        byte[] schema = schemaFor(part); // authoritative host/role schema
+        Program program = Program.load(readProgram(part), schema, registry);
+        results.select(part.index(), registry, ResultContract.fromSchema(schema));
+        phase = "run";
+        program.run(context, registry);
+        // Call the host-selected entries using the same part sink.
+        results.complete(part.index());
+    } catch (VmException error) {
+        results.fail(part.index(), phase, error);
+        break; // drain already-started work before publishing
+    }
+}
+// Global app validation may call results.fail(null, "app", error).
+return results.writeFrame(System.out);
 ```
 
-Native functions never print a frame. A host must omit the helper entirely on
-VM, entry or application failure. `Reports.resultFrame(sink)` returns exact UTF-8
-bytes; `writeResultFrame(OutputStream,sink)` writes LF bytes without platform
-newline conversion. Unset is the mandatory null frame. Existing greeter `--lmcode`
-reporting is deliberately unchanged; SDK support does not claim that external
-hosts/samples have adopted the executing-block protocol.
+There is one fresh owned sink per slot, retained across body and entry calls.
+Reselect active slots for interleaving; completion validates, snapshots and seals.
+No write, reset, reselection or second completion succeeds after sealing. The
+collector retains the first failure and reports its builder slot; global and
+single-program failures omit `part`. Results always appear in submitted add order,
+independent of dispatch/completion order. The host serializes collector/registry
+access and drains its own active tasks.
 
-Each write validates then owns a deep copy. Lists/maps/Json snapshots outlive
-arena cleanup and source mutation. Fields promote null to an insertion-ordered
-object; overwrite keeps position, while scalar/list field writes fail. UTF-8,
-cycles, unsupported handles, nonfinite values, unsafe mathematical integers and
-nonzero JSON-token underflow are refused with a JSON Pointer and fixed reason.
-The raw number token is checked before its rounded value can hide an error.
+One terminal UTF-8/LF frame contains either `{"ok":true,"result":PAYLOAD}`, or
+`{"ok":true,"result":[PAYLOAD_0,PAYLOAD_1],"parts":2}`. Even one-slot builders have
+`parts:1`. Controlled failures contain `ok`, `phase`, `code`, `message`, optional
+positive `line`/`column`, and a builder-only `part`; they contain no partial result.
+`writeFrame(OutputStream)` flushes without closing, returns 0/2/3/4, and refuses
+repeated emission even after output failure. `Reports.failureFrame` handles errors
+before collector construction. Sink-only framing and unframed report APIs were
+removed; there is no fallback protocol. VM execution never prints implicitly.
 
-Result floats use **Double.toString**, independently of str(float)'s legacy
-formatting. `0.1 + 0.2` emits **0.30000000000000004**; negative zero becomes 0.
-Other legal exponent/subnormal spellings follow Java's named round-trip formatter.
-The versioned [canonical std reference](docs/std.md) and
-[result ownership guide](durable-memory/09-invocation-results.md) describe the boundary.
+Schema 2 may declare `"result":{"type":"IntMap","nullable":false}`. No declaration
+allows any JSON including null; a declared type defaults to nonnullable. Contract
+checks are atomic on writes and enforced again on completion. Initial/reset null
+is unfinished construction state. Known int-to-float/list/map widening preserves
+values; `Json` defers to actual shape; typed collection members are non-null.
+The catalog remains v3, 206 signatures, including the same 24 return imports.
 
-`mvn -q verify` runs all three pinned fixture families, ownership/numeric checks
-and production-copy mutations. `RUN_NATIVE=1 ./test.sh` additionally builds GraalVM
-and runs the same result checks and frame family natively. No CI dispatch is needed.
+Owned copies preserve JSON Pointer failures, strict UTF-8, safe integers and
+nonzero-underflow checks. Floats retain **Double.toString** shortest round trips;
+`0.1 + 0.2` is **0.30000000000000004**, and negative zero becomes 0. Java receives
+launcher-decoded Unicode argv; malformed Java strings and manifest UTF-8 bytes are
+refused, while original undecodable OS argv bytes are not recoverable from `String[]`.
+
+`mvn -q verify` runs four pinned corpus families, 14 canonical invocation goldens,
+19 malformed descriptor controls, ownership/numeric tests and compiled source
+mutations. `RUN_NATIVE=1 ./test.sh` also runs the boundary and goldens in GraalVM
+Native Image. The ordinary SDK Greeter uses the new single envelope; external
+sample multi-program adapter adoption remains R7.
+See [the ownership guide](durable-memory/09-invocation-results.md) and
+[canonical standard reference](docs/std.md).
 
 ## Historical literal names
 

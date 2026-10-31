@@ -141,7 +141,7 @@ final class ResultJson {
     if(type.startsWith("Float")&&item instanceof Double d)return number(d,path);
     throw invalid(path,"handle");
   }
-  private static Object copyNode(StdJson.Node node,String path,Set<Object> active){
+  static Object copyNode(StdJson.Node node,String path,Set<Object> active){
     if(node==null||node.kind==null)throw invalid(path,"handle");
     if(!active.add(node))throw invalid(path,"cycle");
     try {

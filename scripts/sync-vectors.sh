@@ -11,7 +11,7 @@ if [ "${1:-}" = --update ]; then
 fi
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
-for suite in vectors stdlib-vectors return-vectors; do
+for suite in vectors stdlib-vectors return-vectors invocation-vectors; do
   if [ "${1:-}" != --update ]; then pin="$(sed -n 's/^commit=//p' "$suite.lock")"; fi
   timeout 60 git -C "$source" archive "$pin" "conformance/$suite" | tar -xf - -C "$scratch"
   rm -rf "conformance/$suite"

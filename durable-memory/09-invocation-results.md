@@ -1,58 +1,60 @@
-# Invocation-owned results — Java SDK slice 2
+# Invocation results and envelopes — R3 Java
 
-Consensus: skills-scripts/lmscript-track/designs/lmcode-return-and-reverse-templates-consensus.md.
-Reference: C++ result slice 3379c77, stream refinement 208650f; canonical std
-and fixture bytes finally synchronized at b8615eda9fc56cd19eb5ffef62cd05e0d78cd977.
+Contract: skills-scripts/lmscript-track/designs/lmcode-exec-and-result-envelope-amendment.md.
+Canonical C++ reader/collector/contract and 14 native goldens: R1 main 3d353d2.
+This supersedes the former sink-only successful payload framing.
 
-ResultSink is a normal host object, attached to Registry with setResultSink.
-It is not stored in StdCollections.Arena or Context region state. Both run and
-call can clear their standard arenas without touching the sink. Hosts reset
-before a new logical invocation and retain across selected entry calls. Concurrent
-invocations need distinct sinks and the existing registry execution discipline.
+`InvocationResults.fromCommand(List<String>)` consults the process environment
+without mutating it. Explicit manifest-path and raw-metadata constructors support
+native embedding/tests; no public host manifest flag or script file getter exists.
+Strict UTF-8/BOM/duplicate-key/raw-number validation precedes dispatch. Metadata
+requires exact root/part keys, version 1, contiguous indices, unique absolute files
+and a complete registration permutation. Descriptor order supplies canonical slot
+indices even when parsing reverses argv. Standalone CLI duplicates are separate
+occurrences; one-slot builder shape requires its descriptor.
 
-The 24 canonical signatures are installed by Stdlib.register/default Registry.
-All accepted types are copied into owned JSON values. Json uses retained raw
-numeric tokens plus a bounded decimal classifier before serialization; never
-use the schema/manifest Json.parse double representation for this conversion.
-Errors are RUN_HOST with the consensus prefix, JSON Pointer and fixed reason.
-Failed writes preserve prior data. Field writes require object/null; insertion
-order and overwrite position are preserved. Arbitrary handles are not stringified.
+`select(index, registry, contract)` allocates a fresh sink per slot and permits
+active reselection without reset or contract changes. `complete(index)` validates,
+returns an owned snapshot internally and seals the sink. A null result is a real
+completed result; it is distinct from missing completion. Errors during completion
+latch the run/slot association before rethrowing. Sealed writes/reset/reselection
+and repeated completion fail. Never share a root between slots or clear it on arena
+exit. The registry's existing per-run guard and host serialization still apply;
+this collector is not a scheduler and does not wait for host tasks.
 
-Reports.resultFrame returns LF UTF-8 bytes. The stream helper writes and flushes those bytes
-and surfaces IOException, including PrintStream trouble flags, without printing
-by itself or closing the caller's stream. Emit after successful dispatch and application validation only. There is
-no automatic reporter modification: sample adoption belongs to the adopter slice.
-The test host ReturnConformanceRunner demonstrates the actual success/error split.
+`fail(indexOrNull, phase, error)` validates and copies the first observed failure,
+including its mutable location fields. Subsequent failures cannot overwrite it,
+even if their arguments are invalid. Do not start a new slot after failure; drain
+already-selected work. Global app failure discards all snapshots. The writer emits
+one compact add-order success or flat failure envelope, returns 0/2/3/4, flushes LF
+UTF-8 bytes, and does not close streams. It marks publication before writing and
+cannot retry after partial output, IOException or a swallowed PrintStream error.
+The pre-collector helper is `Reports.failureFrame`; callers return immediately.
+The old sink-only frame/report-success functions were removed, without aliases.
 
-Do not reuse Formatting.formatG15: Java's consensus formatter is Double.toString.
-The canonical sum fixture's payload is exactly 0.30000000000000004. Java's legal
-exponent/minimum-subnormal spelling need not match C++ to_chars outside the shared
-byte fixtures; tests check exact binary64 round trips and the required sum bytes.
+`ResultContract.fromSchema(byte[])` reads authoritative schema 2 metadata; the
+manifest cannot supply a contract. The optional result type has 12 approved names
+and nullable defaults false; null forbids the nullable key. Unknown keys/types are
+LOAD_BAD_SCHEMA. Initial/reset null is unfinished construction, but explicit null
+and completion obey root nullability. Typed collection members remain non-null;
+Json permits nested null and, when nonnullable, a non-null root of any JSON shape.
+Known widening preserves numeric representation. Field candidates are validated
+before assignment, so a refused write leaves the previous root intact.
 
-ResultSinkChecks is also reachable from the native SelfTest. ReturnMutationChecks
-runs real javac production copies on the JVM, checking both failure exit and the
-specific live assertion. The return fixture family is pinned and executed on JVM
-and native; deliberate host resets, early frames and legacy rounding must be caught.
+The 24 return signatures, bytecode version, VM/HALT values and owned copies remain.
+Raw numeric tokens are classified before rounded values hide unsafe integers or
+nonzero underflow. Frame floats use Double.toString, never Formatting.formatG15;
+0.1 + 0.2 remains 0.30000000000000004. The strict metadata parser reuses the existing
+JSON node reader and result validator rather than a permissive double-only reader.
+Java's launcher already decodes raw OS argv into Unicode; the API rejects invalid
+UTF-16 strings before filesystem access and strict byte-based manifest UTF-8.
+It cannot recover original invalid OS argv bytes from a replacement character.
 
-Canonical std/docs/version and fixture bytes are imported, not hand-regenerated.
-The additional return-vectors lock carries the same provenance format as the
-existing vector locks. PinVerifier also enforces exact standard signature parity.
-
-C++ follow-up 208650f requires explicit flush before successful framing. Java
-controls first failed for deferred OutputStream and swallowed PrintStream errors;
-the helper now surfaces both. The reference std/return fixture bytes are unchanged
-through 1033429. The initial result port used 73 core cases. Concurrent Java commit ac0579e
-advanced that family to the 397-case b8615ed core matrix without runtime changes.
-After rebase, JVM and native both passed the complete expanded family; all data
-locks now use that same immutable reference.
-
-Serialize the complete body-plus-selected-entries sequence when reusing a registry.
-The existing active guard protects individual run/call operations, not gaps between
-them. Aliased registry references are not separate invocations; parallel hosts use
-independent registry/context/sink triplets. Do not rebind a sink midway through an
-invocation. Use an LF-preserving output stream for terminal protocol bytes.
-
-The hidden Greeter --return-fixture test entry point runs the reference host and
-writes its actual terminal frame to stdout. test.lms compares native sum/null
-bytes and asserts empty stdout with exit 3/4 for entry/application failure. This
-is test plumbing, not adoption of the ordinary Greeter `--lmcode` reporter.
+The sync script and PinVerifier own all four corpus pins. Maven verify always runs
+compiled missing-seal, reused-sink, wrong-part, omitted-flush and additional faults;
+a compile failure/crash is not a caught fault. The golden harness executes real
+programs in one process, including reverse order, duplicate programs, shared host
+counter, null/nested/list results, first failure and app failure. Native test.lms
+runs those same golden bytes via the hidden Greeter fixture entrypoint. Fixtures
+are generated/pinned from canonical source, never inferred from runtime stdout.
+External Java shop sample adoption is a separate R7 change.
