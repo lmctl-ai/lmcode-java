@@ -17,8 +17,8 @@ plot.cmd("plot 'data/ordered_map.csv' every ::1 using 2:xtic(1) title 'insertion
 plot.close();
 end _lmcode_
 savedsl(sim, "data/ordered_map.dslb");
-r = system ${dsl_cli(sim)} --dsl data/ordered_map.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/ordered_map.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/ordered_map-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/ordered_map-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/ordered_map-draw.dslb;
 assert(r.code == 0);

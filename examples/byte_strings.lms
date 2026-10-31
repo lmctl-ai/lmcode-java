@@ -21,8 +21,8 @@ plot.cmd("plot 'data/byte_lengths.csv' every ::1 using 2:xtic(1) title 'bytes' l
 plot.close();
 end _lmcode_
 savedsl(sim, "data/byte_strings.dslb");
-r = system ${dsl_cli(sim)} --dsl data/byte_strings.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/byte_strings.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/byte_strings-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/byte_strings-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/byte_strings-draw.dslb;
 assert(r.code == 0);

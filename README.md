@@ -137,7 +137,7 @@ Reports.writeResultFrame(System.out, sink); // success path ONLY
 Native functions never print a frame. A host must omit the helper entirely on
 VM, entry or application failure. `Reports.resultFrame(sink)` returns exact UTF-8
 bytes; `writeResultFrame(OutputStream,sink)` writes LF bytes without platform
-newline conversion. Unset is the mandatory null frame. Existing greeter `--dsl`
+newline conversion. Unset is the mandatory null frame. Existing greeter `--lmcode`
 reporting is deliberately unchanged; SDK support does not claim that external
 hosts/samples have adopted the executing-block protocol.
 
@@ -160,4 +160,4 @@ and runs the same result checks and frame family natively. No CI dispatch is nee
 
 ## Historical literal names
 
-The documentation calls the language lmcode. `--dsl`, `--dsl-schema` and `--dsl-signatures` are current host flag literals; `DSLB` is the bytecode magic and `DSLB v6` is the current format name; `.dslb` is the current bytecode filename extension; `dsl.schema` is the current schema JSON key. Other code-formatted API names, paths, manifest names and diagnostic text retain their current literal spellings.
+The documentation calls the language lmcode. `--lmcode`, `--lmcode-schema` and `--lmcode-signatures` are current host flag literals; `DSLB` is the bytecode magic and `DSLB v6` is the current format name; `.dslb` is the current bytecode filename extension; `dsl.schema` is the current schema JSON key. Other code-formatted API names, paths, manifest names and diagnostic text retain their current literal spellings.

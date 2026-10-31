@@ -14,8 +14,8 @@ plot.cmd("plot 'data/standard_catalog.csv' every ::1 using 2:xtic(1) title 'valu
 plot.close();
 end _lmcode_
 savedsl(sim, "data/standard_catalog.dslb");
-r = system ${dsl_cli(sim)} --dsl data/standard_catalog.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/standard_catalog.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/standard_catalog-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/standard_catalog-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/standard_catalog-draw.dslb;
 assert(r.code == 0);

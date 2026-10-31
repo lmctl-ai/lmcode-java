@@ -9,7 +9,7 @@ From the repository root:
 ```sh
 mvn -q verify
 scripts/build-native.sh
-./target/greeter --dsl examples/greeter/hello.dslb
+./target/greeter --lmcode examples/greeter/hello.dslb
 ```
 
 Windows uses target/greeter.exe and scripts/build-native.ps1. To regenerate hello.dslb,

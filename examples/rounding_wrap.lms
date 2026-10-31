@@ -16,8 +16,8 @@ plot.cmd("plot 'data/rounding.csv' every ::1 using 1:2 with impulses lw 4 lc rgb
 plot.close();
 end _lmcode_
 savedsl(sim, "data/rounding_wrap.dslb");
-r = system ${dsl_cli(sim)} --dsl data/rounding_wrap.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/rounding_wrap.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/rounding_wrap-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/rounding_wrap-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/rounding_wrap-draw.dslb;
 assert(r.code == 0);

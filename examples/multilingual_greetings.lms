@@ -16,8 +16,8 @@ plot.cmd("plot 'data/multilingual.csv' every ::1 using 2:xtic(1) title 'bytes' l
 plot.close();
 end _lmcode_
 savedsl(sim, "data/multilingual_greetings.dslb");
-r = system ${dsl_cli(sim)} --dsl data/multilingual_greetings.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/multilingual_greetings.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/multilingual_greetings-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/multilingual_greetings-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/multilingual_greetings-draw.dslb;
 assert(r.code == 0);

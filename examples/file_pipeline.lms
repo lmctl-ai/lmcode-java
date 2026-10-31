@@ -15,8 +15,8 @@ plot.cmd("plot 'data/pipeline.csv' every ::1 using 2:xtic(1) with linespoints lw
 plot.close();
 end _lmcode_
 savedsl(sim, "data/file_pipeline.dslb");
-r = system ${dsl_cli(sim)} --dsl data/file_pipeline.dslb;
+r = system ${dsl_cli(sim)} --lmcode data/file_pipeline.dslb;
 assert(r.code == 0);
 savedsl(draw, "data/file_pipeline-draw.dslb");
-r = system ${dsl_cli(draw)} --dsl data/file_pipeline-draw.dslb;
+r = system ${dsl_cli(draw)} --lmcode data/file_pipeline-draw.dslb;
 assert(r.code == 0);

@@ -3,5 +3,5 @@ greet("Java 21");
 greet("世界");
 end _lmcode_
 savedsl(p, "hello.dslb");
-r = system ${dsl_cli(p)} --dsl hello.dslb;
+r = system ${dsl_cli(p)} --lmcode hello.dslb;
 assert(r.code == 0);
