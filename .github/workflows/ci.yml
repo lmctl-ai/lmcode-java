@@ -5,7 +5,14 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      compiler_version:
+        description: "Published @lmctl-ai/lmctl version"
+        required: false
+        default: "0.2.444"
 permissions: {contents: read}
+env:
+  LMCODE_COMPILER_VERSION: ${{ inputs.compiler_version || vars.LMCODE_COMPILER_VERSION || '0.2.444' }}
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -41,7 +48,10 @@ jobs:
         with: {node-version: '24'}
       - name: Install lmctl and lmscript
         shell: bash
-        run: npm install -g @lmctl-ai/lmctl
+        run: |
+          npm install --prefix "$RUNNER_TEMP/lmcode-lmctl" "@lmctl-ai/lmctl@$LMCODE_COMPILER_VERSION"
+          echo "$RUNNER_TEMP/lmcode-lmctl/node_modules/.bin" >> "$GITHUB_PATH"
+          lmscript --version
       - name: Build tools
         if: runner.os == 'Linux'
         run: timeout 180 sudo apt-get update -qq && timeout 180 sudo apt-get install -y zlib1g-dev
