@@ -76,7 +76,7 @@ public final class InvocationChecks {
   group("global failures and location validation",filter,()->{
    ByteArrayOutputStream out=new ByteArrayOutputStream();equal(Reports.failureFrame(out,"cli",new VmException("CLI_USAGE","bad \"arg\"")),2,"global CLI exit");equal(out.toString(StandardCharsets.UTF_8),frame("{\"ok\":false,\"phase\":\"cli\",\"code\":\"CLI_USAGE\",\"message\":\"bad \\\"arg\\\"\"}"),"global failure bytes");
    InvocationResults r=InvocationResults.fromCommand(List.of("a"),null);Registry reg=new Registry();r.select(0,reg,new ResultContract());r.complete(0);VmException bad=new VmException("RUN_HOST","bad");bad.column=2;refuses(()->r.fail(0,"run",bad),"RUN_HOST","column requires a positive line");bad.column=null;bad.line=9007199254740992L;refuses(()->r.fail(0,"run",bad),"RUN_HOST","line must be positive");refuses(()->r.fail(0,"invalid",new VmException("RUN_HOST","bad")),"RUN_HOST","invalid failure phase");equal(output(r,0),frame("{\"ok\":true,\"result\":null}"),"invalid failure latched");
-   refuses(()->InvocationResults.fromMetadata(new byte[]{(byte)255},List.of("a")),"CLI_USAGE","utf8");refuses(()->InvocationResults.fromMetadata("\ud800",List.of("a")),"CLI_USAGE","utf8");refuses(()->ResultContract.fromSchema("\ud800"),"LOAD_BAD_SCHEMA","utf8");
+   refuses(()->InvocationResults.fromMetadata(new byte[]{(byte)255},List.of("a")),"CLI_USAGE","invalid UTF-8");refuses(()->InvocationResults.fromMetadata("\ud800",List.of("a")),"CLI_USAGE","utf8");refuses(()->ResultContract.fromSchema("\ud800"),"LOAD_BAD_SCHEMA","utf8");
   });
  }
 }

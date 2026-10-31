@@ -81,3 +81,6 @@ with tempfile.TemporaryDirectory(prefix='metadata-controls-')as temporary:
 # Java main(String[]) receives launcher-decoded Unicode, not raw OS argv bytes.
 # InvocationChecks refuses invalid UTF-16 file strings before filesystem access;
 # the byte-oriented malformed-manifest UTF-8 tests above run in both runtimes.
+
+import runpy
+runpy.run_path(str(HERE/"check_metadata.py"))["check"](COMMAND,HERE)

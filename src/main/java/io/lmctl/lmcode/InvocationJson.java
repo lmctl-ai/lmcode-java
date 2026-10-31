@@ -7,7 +7,7 @@ import java.util.*;
 final class InvocationJson {
  private InvocationJson(){}
  static StdJson.Node parse(byte[] bytes) {
-  ResultJson.text(new VmString(bytes), "");
+  StdJson.utf8(bytes, 0);
   if(bytes.length>=3&&(bytes[0]&255)==239&&(bytes[1]&255)==187&&(bytes[2]&255)==191)
    throw VmException.host("JSON BOM is not allowed");
   StdJson.Parser parser=new StdJson.Parser(bytes);StdJson.Node value=parser.val(0);parser.ws();
