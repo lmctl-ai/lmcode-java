@@ -80,6 +80,8 @@ public final class ReturnConformanceRunner {
    default->throw new IllegalArgumentException("unknown return runner flag");
   }
   Result result=execute(Path.of(args[0]),Path.of(args[1]),repeat,reset,early,rounding,app);
-  System.out.write(result.stdout());System.err.write(result.stderr());if(result.exit()!=0)System.exit(result.exit());
+  System.out.write(result.stdout());System.err.write(result.stderr());System.out.flush();System.err.flush();
+  if(System.out.checkError()||System.err.checkError())System.exit(3);
+  if(result.exit()!=0)System.exit(result.exit());
  }
 }

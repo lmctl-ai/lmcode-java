@@ -17,9 +17,9 @@ Errors are RUN_HOST with the consensus prefix, JSON Pointer and fixed reason.
 Failed writes preserve prior data. Field writes require object/null; insertion
 order and overwrite position are preserved. Arbitrary handles are not stringified.
 
-Reports.resultFrame returns LF UTF-8 bytes. The stream helper writes those bytes
-and surfaces IOException, without printing by itself or closing the caller's
-stream. Emit after successful dispatch and application validation only. There is
+Reports.resultFrame returns LF UTF-8 bytes. The stream helper writes and flushes those bytes
+and surfaces IOException, including PrintStream trouble flags, without printing
+by itself or closing the caller's stream. Emit after successful dispatch and application validation only. There is
 no automatic reporter modification: sample adoption belongs to the adopter slice.
 The test host ReturnConformanceRunner demonstrates the actual success/error split.
 
@@ -36,3 +36,9 @@ and native; deliberate host resets, early frames and legacy rounding must be cau
 Canonical std/docs/version and fixture bytes are imported, not hand-regenerated.
 The additional return-vectors lock carries the same provenance format as the
 existing vector locks. PinVerifier also enforces exact standard signature parity.
+
+C++ follow-up 208650f requires explicit flush before successful framing. Java
+controls first failed for deferred OutputStream and swallowed PrintStream errors;
+the helper now surfaces both. The reference std/return fixture bytes are unchanged
+through 1033429. The unrelated later core matrix expansion is not silently pulled
+into this result-sink slice: the complete pinned 73-case core corpus remains.

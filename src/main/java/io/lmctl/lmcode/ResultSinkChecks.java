@@ -70,6 +70,7 @@ public final class ResultSinkChecks {
   group("shortest float and zero",()->{
    ResultSink s=new ResultSink();s.set(Value.ofFloat(.1+.2));
    equal(new String(Reports.resultFrame(s),java.nio.charset.StandardCharsets.UTF_8),"LMCODE_RETURN_BEGIN\n0.30000000000000004\nLMCODE_RETURN_END\n","shortest float frame, not str(float)");
+   s.set(Value.ofFloat(.1));equal(s.json(),"0.1","shortest 0.1, not 17-digit expansion");
    s.set(Value.ofFloat(-0.0));equal(s.json(),"0","negative zero");s.set(Value.ofFloat(Double.MIN_VALUE));equal(Double.parseDouble(s.json()),Double.MIN_VALUE,"subnormal round trip");
    for(double value:new double[]{Double.NaN,Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY})refuses(()->s.set(Value.ofFloat(value)),"lmcode return: invalid JSON value at : nonfinite");
    refuses(()->s.set(Value.ofFloat(9007199254740992.0)),"lmcode return: invalid JSON value at : unsafe_integer");
@@ -118,6 +119,22 @@ public final class ResultSinkChecks {
     call(registry,context,"fn lmcode_return_put_null(string) -> void",Value.ofString("n"));
    }finally{System.setOut(oldOut);System.setErr(oldErr);}
    equal(out.size(),0,"native library printed stdout");equal(err.size(),0,"native library printed stderr");
+  },filter);
+  group("deferred stream failure",()->{
+   boolean[] closed={false};
+   java.io.OutputStream output=new java.io.OutputStream(){
+    public void write(int value){}
+    public void flush()throws java.io.IOException{throw new java.io.IOException("deferred frame failure");}
+    public void close(){closed[0]=true;}
+   };
+   try{Reports.writeResultFrame(output,new ResultSink());throw new AssertionError("frame writer swallowed deferred stream failure");}
+   catch(java.io.IOException expected){equal(expected.getMessage(),"deferred frame failure","stream error preserved");}
+   equal(closed[0],false,"frame helper closed caller stream");
+  },filter);
+  group("PrintStream write failure",()->{
+   java.io.PrintStream output=new java.io.PrintStream(new java.io.OutputStream(){public void write(int value)throws java.io.IOException{throw new java.io.IOException("broken stream");}},true,java.nio.charset.StandardCharsets.UTF_8);
+   try{Reports.writeResultFrame(output,new ResultSink());throw new AssertionError("frame writer ignored PrintStream error");}
+   catch(java.io.IOException expected){equal(expected.getMessage(),"lmcode return: cannot write result frame","PrintStream error surfaced");}
   },filter);
   group("concurrent invocations and LF output",()->{
    ExecutorService pool=Executors.newFixedThreadPool(2);CountDownLatch ready=new CountDownLatch(2),go=new CountDownLatch(1);

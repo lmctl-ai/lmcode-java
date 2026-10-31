@@ -14,6 +14,7 @@ public final class ReturnMutationChecks {
    new Fault("owned list copy","ResultJson.java","    return out;\n  }\n  private static Object copyElement", "    return (List<Object>) raw;\n  }\n  private static Object copyElement","owned list","arena-alias/source-mutation"),
    new Fault("entry reset","Registry.java","active=true;try{if(defaultCollections)","active=true;try{if(resultSink!=null)resultSink.reset();if(defaultCollections)","owned list","reset-between-calls"),
    new Fault("retained raw number","ResultJson.java","if(decimalUnsafeInteger(raw,path))","if(false)","raw numeric","expected refusal: lmcode return: invalid JSON value at : unsafe_integer"),
+   new Fault("17-digit float formatter","ResultJson.java","Double.toString(v)","String.format(java.util.Locale.ROOT,\"%.17g\",v)","shortest float","shortest 0.1, not 17-digit expansion"),
    new Fault("legacy float formatter","ResultJson.java","Double.toString(v)","Formatting.formatG15(v)","shortest float","shortest float frame, not str(float)"),
    new Fault("silent default sink","Registry.java","if(resultSink==null)throw VmException.host(\"lmcode return: no result sink\");","if(resultSink==null)resultSink=new ResultSink();","registration","expected refusal: lmcode return: no result sink")
   );

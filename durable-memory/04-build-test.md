@@ -10,8 +10,8 @@ EntryChecks is included in JVM and native self-tests. It has independent wire fi
 ## Invocation-result gate update
 
 Current immutable reference: 14868f84188abaf46d094e61abd291013d9bae1e.
-`mvn -q verify` executes 73 core, 268 standard and nine frame fixtures, 13
-result ownership/numeric groups, 24-signature registration, seven production-copy
+`mvn -q verify` executes 73 core, 268 standard and nine frame fixtures, 15
+result ownership/numeric groups, 24-signature registration, eight production-copy
 mutants and three fault-host framing controls. Existing standard/schema/bytecode
 formats remain v3/v2/v6. PinVerifier validates return-vectors.lock as well as the
 original locks. Canonical source, .dslb, .expect and docs are copied unchanged.
