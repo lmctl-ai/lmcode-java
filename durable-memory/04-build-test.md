@@ -1,6 +1,6 @@
 # Build and test
 
-JDK21 and Maven3.6.3+. mvn -q verify executes pinned-tree/schema checks, six gallery-file checks, nine unit/regression groups, the rule-methods schema pin, 70 core vectors and 267 standard v3 vectors (181 canonical std signatures). Fixtures are copied unchanged from lmcode-cpp commit d608ba2f7eaf11e71fdd9a2104fcf90f277772aa; vectors.lock/stdlib-vectors.lock/std.lock record hashes. scripts/sync-vectors.sh restores locked revisions; --update advances both suites and standard-schema locks to the reference HEAD without regenerating bytecode; --verify checks the local copies after compile.
+JDK21 and Maven3.6.3+. mvn -q verify checks immutable standard/schema pins, six gallery files, rule-method and template contracts, 397 core vectors, 268 standard vectors and nine return-frame fixtures. The default registry has 206 canonical v3 signatures. Result checks run inside SelfTest and isolated production-copy mutation controls. The three vector locks and std.lock record immutable C++ provenance. scripts/sync-vectors.sh restores pinned corpora; --update explicitly advances their references without regenerating bytecode. Use --verify after compiling to validate hashes.
 
 RUN_NATIVE=1 ./test.sh builds the Greeter via GraalVM CE21, then checks version, exact embedded schema/notices, hello bytecode, unit groups and both vector suites. Linux uses -H:+StaticExecutableWithDynamicLibC (the Java21 equivalent of --static-nolibc) so only glibc is dynamic. Windows builds via native-image.cmd/PowerShell and lets GraalVM append.exe. No fallback JVM images.
 
@@ -9,8 +9,8 @@ EntryChecks is included in JVM and native self-tests. It has independent wire fi
 
 ## Invocation-result gate update
 
-Current immutable reference: 14868f84188abaf46d094e61abd291013d9bae1e.
-`mvn -q verify` executes 73 core, 268 standard and nine frame fixtures, 15
+Current immutable data reference: b8615eda9fc56cd19eb5ffef62cd05e0d78cd977.
+`mvn -q verify` executes 397 core, 268 standard and nine frame fixtures, 15
 result ownership/numeric groups, 24-signature registration, eight production-copy
 mutants and three fault-host framing controls. Existing standard/schema/bytecode
 formats remain v3/v2/v6. PinVerifier validates return-vectors.lock as well as the

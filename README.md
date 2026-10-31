@@ -31,7 +31,7 @@ The SDK has no runtime dependencies beyond the JDK. It uses byte strings through
 
 ## Status
 
-Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 73 core and 268 standard-library vectors (206 canonical v3 signatures), plus nine invocation-result frame fixtures run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
+Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 397 core and 268 standard-library vectors (206 canonical v3 signatures), plus nine invocation-result frame fixtures run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
 
 Linux builds target dynamic glibc with a minimum glibc version of 2.35. They do not support musl or alternate libc implementations. Linux C++ runtimes and zlib are static; glibc remains dynamic. Windows native executables use the Microsoft Visual C++ x64 runtime (`VCRUNTIME140.dll` and `VCRUNTIME140_1.dll`).
 

@@ -27,5 +27,13 @@ if (env("RUN_NATIVE") == "1") {
   step([executable, "--conformance", "conformance/vectors"], 600000);
   step([executable, "--conformance", "conformance/stdlib-vectors"], 600000);
   step([executable, "--return-conformance", "conformance/return-vectors"], 600000);
+  result = step([executable, "--return-fixture", "conformance/return-vectors/float-roundtrip.dslb", "conformance/return-vectors/schema.json"], 30000);
+  assert(result.stdout == read_file("conformance/return-vectors/float-roundtrip.expect"), "native shortest float frame bytes differ");
+  result = step([executable, "--return-fixture", "conformance/return-vectors/unset-null.dslb", "conformance/return-vectors/schema.json"], 30000);
+  assert(result.stdout == read_file("conformance/return-vectors/unset-null.expect"), "native mandatory null frame bytes differ");
+  result = system([executable, "--return-fixture", "conformance/return-vectors/entry-error.dslb", "conformance/return-vectors/schema.json"], 30000);
+  assert(result.code == 3 && result.stdout == "", "failed native entry emitted a frame or wrong status");
+  result = system([executable, "--return-fixture", "conformance/return-vectors/float-roundtrip.dslb", "conformance/return-vectors/schema.json", "--app-fail"], 30000);
+  assert(result.code == 4 && result.stdout == "", "failed native application emitted a frame or wrong status");
 }
 println("PASS Java SDK and annotated interface example");
