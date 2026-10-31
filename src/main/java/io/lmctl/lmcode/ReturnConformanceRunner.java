@@ -74,7 +74,7 @@ public final class ReturnConformanceRunner {
   }
   Result result=execute(Path.of(args[0]),Path.of(args[1]),repeat,reset,early,rounding,app);
   System.out.write(result.stdout());System.err.write(result.stderr());System.out.flush();System.err.flush();
-  if(System.out.checkError()||System.err.checkError())System.exit(3);
+  if(System.out.checkError()||System.err.checkError())System.exit(4);
   if(result.exit()!=0)System.exit(result.exit());
  }
 }

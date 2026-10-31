@@ -14,7 +14,7 @@ public final class Reports {
  }
  static void outputError(){try{System.err.print("lmcode invocation: cannot write envelope\n");}catch(RuntimeException ignored){}}
  static int emit(java.io.OutputStream output,String json,int code){
-  try{output.write(framed(json));output.flush();if(output instanceof java.io.PrintStream stream&&stream.checkError())throw new java.io.IOException("output failed");return code;}
+  try{output.write(framed(json));if(output instanceof java.io.PrintStream stream){if(stream.checkError())throw new java.io.IOException("output failed");}else output.flush();return code;}
   catch(java.io.IOException|RuntimeException e){outputError();return 4;}
  }
  /** Only for controlled errors before collector construction; hosts return immediately. */

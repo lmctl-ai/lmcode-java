@@ -68,5 +68,15 @@ public final class InvocationChecks {
    // Duplicate CLI occurrences have distinct slots without a descriptor.
    equal(InvocationResults.fromCommand(List.of("same","same"),null).registrations().get(1).index(),1,"standalone duplicate filename deduplicated");
   });
+  group("all contract shapes and immutable bindings",filter,()->{
+   Map<String,String> values=new LinkedHashMap<>();values.put("null","null");values.put("bool","true");values.put("int","2");values.put("float","2.5");values.put("string","\"water 水\"");values.put("Json","{\"nested\":[null]}");values.put("StrList","[\"a\"]");values.put("IntList","[1]");values.put("FloatList","[1,0.5]");values.put("StrMap","{\"a\":\"b\"}");values.put("IntMap","{\"a\":1}");values.put("FloatMap","{\"a\":0.5}");
+   for(var e:values.entrySet()){ResultSink sink=new ResultSink(contract(e.getKey()));sink.set(Value.object("Json",InvocationJson.parse(InvocationJson.utf8(e.getValue()))));sink.seal();equal(sink.json(),e.getValue(),"contract shape "+e.getKey());}
+   InvocationResults r=InvocationResults.fromCommand(List.of("a"),null);Registry registry=new Registry();r.select(0,registry,contract("IntMap")).put("kept",Value.ofInt(1));refuses(()->r.select(0,registry,contract("Json")),"RUN_HOST","result contract changed");r.complete(0);if(!output(r,0).contains("\"kept\":1"))throw new AssertionError("reselection changed contract/root");
+  });
+  group("global failures and location validation",filter,()->{
+   ByteArrayOutputStream out=new ByteArrayOutputStream();equal(Reports.failureFrame(out,"cli",new VmException("CLI_USAGE","bad \"arg\"")),2,"global CLI exit");equal(out.toString(StandardCharsets.UTF_8),frame("{\"ok\":false,\"phase\":\"cli\",\"code\":\"CLI_USAGE\",\"message\":\"bad \\\"arg\\\"\"}"),"global failure bytes");
+   InvocationResults r=InvocationResults.fromCommand(List.of("a"),null);Registry reg=new Registry();r.select(0,reg,new ResultContract());r.complete(0);VmException bad=new VmException("RUN_HOST","bad");bad.column=2;refuses(()->r.fail(0,"run",bad),"RUN_HOST","column requires a positive line");bad.column=null;bad.line=9007199254740992L;refuses(()->r.fail(0,"run",bad),"RUN_HOST","line must be positive");refuses(()->r.fail(0,"invalid",new VmException("RUN_HOST","bad")),"RUN_HOST","invalid failure phase");equal(output(r,0),frame("{\"ok\":true,\"result\":null}"),"invalid failure latched");
+   refuses(()->InvocationResults.fromMetadata(new byte[]{(byte)255},List.of("a")),"CLI_USAGE","utf8");refuses(()->InvocationResults.fromMetadata("\ud800",List.of("a")),"CLI_USAGE","utf8");refuses(()->ResultContract.fromSchema("\ud800"),"LOAD_BAD_SCHEMA","utf8");
+  });
  }
 }
