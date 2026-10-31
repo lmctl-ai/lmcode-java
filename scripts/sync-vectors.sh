@@ -6,12 +6,12 @@ if [ "${1:-}" = --verify ]; then exec java -cp target/classes io.lmctl.lmcode.Pi
 source="${LMCODE_CPP_DIR:-../lmcode-cpp}"
 case "${1:-}" in ''|--update) ;; *) echo 'usage: sync-vectors.sh [--verify|--update]' >&2; exit 2;; esac
 if [ "${1:-}" = --update ]; then
-  pin="$(timeout 20 git -C "$source" rev-parse HEAD)"
+  pin="$(timeout 20 git -C "$source" rev-parse "${LMCODE_CPP_REF:-HEAD}")"
   timeout 120 mvn -q compile
 fi
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
-for suite in vectors stdlib-vectors; do
+for suite in vectors stdlib-vectors return-vectors; do
   if [ "${1:-}" != --update ]; then pin="$(sed -n 's/^commit=//p' "$suite.lock")"; fi
   timeout 60 git -C "$source" archive "$pin" "conformance/$suite" | tar -xf - -C "$scratch"
   rm -rf "conformance/$suite"
@@ -19,7 +19,9 @@ for suite in vectors stdlib-vectors; do
   cp -R "$scratch/conformance/$suite/." "conformance/$suite/"
 done
 if [ "${1:-}" = --update ]; then
-  timeout 60 git -C "$source" show "$pin:std/lmcode-std.schema.json" > std/lmcode-std.schema.json
+  for file in std/lmcode-std.schema.json std/lmcode-std.docs.json std/README.md std/std.lock std/template.md std/template-cases.json docs/std.md; do
+    timeout 60 git -C "$source" show "$pin:$file" > "$file"
+  done
   timeout 30 java -cp target/classes io.lmctl.lmcode.PinVerifier --write-locks "$pin"
 fi
 printf 'Restored locked vectors; run mvn -q verify to validate hashes.\n'

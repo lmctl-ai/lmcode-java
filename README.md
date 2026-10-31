@@ -31,7 +31,7 @@ The SDK has no runtime dependencies beyond the JDK. It uses byte strings through
 
 ## Status
 
-Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 70 core and 267 standard-library vectors (182 canonical v3 signatures) run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
+Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 73 core and 268 standard-library vectors (206 canonical v3 signatures), plus nine invocation-result frame fixtures run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
 
 Linux builds target dynamic glibc with a minimum glibc version of 2.35. They do not support musl or alternate libc implementations. Linux C++ runtimes and zlib are static; glibc remains dynamic. Windows native executables use the Microsoft Visual C++ x64 runtime (`VCRUNTIME140.dll` and `VCRUNTIME140_1.dll`).
 
@@ -55,7 +55,7 @@ The checked-in CI matrix runs JVM and native conformance on Ubuntu 22.04 x64/arm
 
 The public package is `io.lmctl.lmcode`. The main entry points are `Program.load(bytecode, schema, registry)`, `Program.run(context, registry)`, `Registry`, `Context`, `Value`, `VmString`, and `VmException`. `Stdlib.register(registry)` installs the standard catalog explicitly; the default `Registry` installs it automatically.
 
-The standard catalog (182 signatures) includes byte-oriented string operations, strict RFC 4648 Base64 and hex byte codecs, numeric parsing, math overloads, raw regular-file helpers, insertion-ordered string/int/float maps with independent `keys()`/`values()` snapshots, typed lists, typed stacks/queues/priority queues, immutable strict UTF-8 `Json` (`json_parse`), and optional testing helpers. Standard limits are deliberate: 64 MiB for string results, 2²⁷ glob work steps, 256 JSON container nesting depth, 65,536 collection/document objects per run, a 4 GiB context memory budget, and 10 million VM instructions by default.
+The standard catalog (206 signatures) includes byte-oriented string operations, strict RFC 4648 Base64 and hex byte codecs, numeric parsing, math overloads, raw regular-file helpers, insertion-ordered string/int/float maps with independent `keys()`/`values()` snapshots, typed lists, typed stacks/queues/priority queues, immutable strict UTF-8 `Json` (`json_parse`), and optional testing helpers. Standard limits are deliberate: 64 MiB for string results, 2²⁷ glob work steps, 256 JSON container nesting depth, 65,536 collection/document objects per run, a 4 GiB context memory budget, and 10 million VM instructions by default.
 
 ## Minimal host
 
@@ -114,3 +114,46 @@ repositories demonstrate object interfaces and publish tested GraalVM executable
 ## Text templates
 
 The standard `template_render(string, Json) -> string` function renders arbitrary text with nested context, indexed lists, loops and boolean conditions. Inserted values remain literal. See the [portable contract and examples](std/template.md).
+
+## Invocation results (DSLB v6)
+
+`Registry.setResultSink(ResultSink)` binds one host-owned sink before the body.
+Keep it through the selected entry calls; reset it only before the next logical
+program. The default registry installs all 24 `lmcode_return_*` signatures:
+set/put for int, float, bool, string, Json, the three typed lists and three typed
+maps; plus root null and field null. A missing configured sink is RUN_HOST,
+`lmcode return: no result sink`. There is no global/default sink.
+
+```java
+ResultSink sink = new ResultSink();
+Registry registry = new Registry().setResultSink(sink);
+// load the program against this registry, then:
+sink.reset();
+program.run(context, registry);
+// perform selected program.call(...) entries and application validation here
+Reports.writeResultFrame(System.out, sink); // success path ONLY
+```
+
+Native functions never print a frame. A host must omit the helper entirely on
+VM, entry or application failure. `Reports.resultFrame(sink)` returns exact UTF-8
+bytes; `writeResultFrame(OutputStream,sink)` writes LF bytes without platform
+newline conversion. Unset is the mandatory null frame. Existing greeter `--dsl`
+reporting is deliberately unchanged; SDK support does not claim that external
+hosts/samples have adopted the executing-block protocol.
+
+Each write validates then owns a deep copy. Lists/maps/Json snapshots outlive
+arena cleanup and source mutation. Fields promote null to an insertion-ordered
+object; overwrite keeps position, while scalar/list field writes fail. UTF-8,
+cycles, unsupported handles, nonfinite values, unsafe mathematical integers and
+nonzero JSON-token underflow are refused with a JSON Pointer and fixed reason.
+The raw number token is checked before its rounded value can hide an error.
+
+Result floats use **Double.toString**, independently of str(float)'s legacy
+formatting. `0.1 + 0.2` emits **0.30000000000000004**; negative zero becomes 0.
+Other legal exponent/subnormal spellings follow Java's named round-trip formatter.
+The versioned [canonical std reference](docs/std.md) and
+[result ownership guide](durable-memory/09-invocation-results.md) describe the boundary.
+
+`mvn -q verify` runs all three pinned fixture families, ownership/numeric checks
+and production-copy mutations. `RUN_NATIVE=1 ./test.sh` additionally builds GraalVM
+and runs the same result checks and frame family natively. No CI dispatch is needed.

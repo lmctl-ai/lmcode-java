@@ -26,5 +26,6 @@ if (env("RUN_NATIVE") == "1") {
   step([executable, "--self-test"], 300000);
   step([executable, "--conformance", "conformance/vectors"], 600000);
   step([executable, "--conformance", "conformance/stdlib-vectors"], 600000);
+  step([executable, "--return-conformance", "conformance/return-vectors"], 600000);
 }
 println("PASS Java SDK and annotated interface example");

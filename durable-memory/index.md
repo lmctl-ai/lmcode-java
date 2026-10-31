@@ -11,7 +11,7 @@ Technical documentation, architecture decisions, and operational guides for `lmc
 | [04-build-test.md](04-build-test.md) | Pinned conformance vectors and GraalVM native builds |
 | [05-ci-release.md](05-ci-release.md) | 5-platform matrix and release gate |
 | [06-examples.md](06-examples.md) | Reproducible examples and demo gallery |
-| [06-stdlib-catalog.md](06-stdlib-catalog.md) | Canonical standard catalog v1–v3 (181 signatures) |
+| [06-stdlib-catalog.md](06-stdlib-catalog.md) | Canonical standard catalog v1–v3 (206 signatures) |
 | [07-open-items.md](07-open-items.md) | Remaining distribution and platform items |
 | [autorun-v010.json](autorun-v010.json) | v0.1.0 fresh-directory autorun verification manifest |
 | [release-v010.json](release-v010.json) | v0.1.0 release assets and platform checksums |
@@ -30,3 +30,5 @@ Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5
 - `catalog-catchup-v011.md` — current53b9bdf pins,169 vectors, managed byte/file contracts and v0.1.1 proof.
 - [rule-methods-pin.md](rule-methods-pin.md) — compiler R47/R48 (schema `interfaces`, `@NAME`/`implements`): no runtime change, pin test and fixture regeneration.
 - [08-lmscript-tests.md](08-lmscript-tests.md): lmscript test entry point, annotated interface example and native sample release convention.
+
+| [09-invocation-results.md](09-invocation-results.md) | Invocation-owned results, framing and numeric boundary |
