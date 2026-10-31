@@ -55,4 +55,4 @@ invocation. Use an LF-preserving output stream for terminal protocol bytes.
 The hidden Greeter --return-fixture test entry point runs the reference host and
 writes its actual terminal frame to stdout. test.lms compares native sum/null
 bytes and asserts empty stdout with exit 3/4 for entry/application failure. This
-is test plumbing, not adoption of the ordinary Greeter --dsl reporter.
+is test plumbing, not adoption of the ordinary Greeter `--dsl` reporter.

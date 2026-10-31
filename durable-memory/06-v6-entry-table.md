@@ -1,4 +1,4 @@
-# DSLB v6 rule entries
+# lmcode bytecode (DSLB v6) rule entries
 
 R49 appends the u16 entry table after body source lines. Pools/imports/context are shared; each entry owns locals, stack reservation, code, loops and line mappings. Parameter locals start at zero, are visible and match the canonical interface signature. Entry verification always runs its stack pass, including loop-free entries: HALT depth 0 for void and 1 otherwise. Body verification remains unchanged.
 

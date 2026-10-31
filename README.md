@@ -74,7 +74,7 @@ The Maven artifact is built locally (`mvn install`) or the SDK sources can be ve
 
 The SDK is MIT licensed. Third-party and toolchain notices are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
 
-## Rule entries (DSLB v6)
+## Rule entries (lmcode bytecode (DSLB v6))
 
 Annotated functions with an implements interface produce entries in source order.
 Program.entries() returns an immutable List of Program.Entry records with name,
@@ -87,7 +87,7 @@ Argument kinds and the returned value are not type-checked; void returns Value.n
 The loader accepts only v6 and verifies each entry's parameter layout, local indexes,
 jumps, loop structure and HALT stack depth. No registry interface registration is needed.
 
-The shared dsl-conformance/3 runner enumerates entries without executing the body;
+The shared `dsl-conformance/3` runner enumerates entries without executing the body;
 for call/call_error/call_error_at fixtures it executes the body once before the call.
 Core and stdlib pins track the same C++ reference corpus; sample repos migrate separately.
 
@@ -157,3 +157,7 @@ The versioned [canonical std reference](docs/std.md) and
 `mvn -q verify` runs all three pinned fixture families, ownership/numeric checks
 and production-copy mutations. `RUN_NATIVE=1 ./test.sh` additionally builds GraalVM
 and runs the same result checks and frame family natively. No CI dispatch is needed.
+
+## Historical literal names
+
+The documentation calls the language lmcode. `--dsl`, `--dsl-schema` and `--dsl-signatures` are current host flag literals; `DSLB` is the bytecode magic and `DSLB v6` is the current format name; `.dslb` is the current bytecode filename extension; `dsl.schema` is the current schema JSON key. Other code-formatted API names, paths, manifest names and diagnostic text retain their current literal spellings.

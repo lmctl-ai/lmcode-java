@@ -12,4 +12,4 @@ JVM and native conformance must be reported separately. Do not claim native avai
 
 ## 2026-10-28 rule entry table
 
-DSLB v6 only; R49 supersedes the v5 format baseline. See [entry table](06-v6-entry-table.md). Body opcodes and semantics are unchanged.
+lmcode bytecode (DSLB v6) only; R49 supersedes the v5 format baseline. See [entry table](06-v6-entry-table.md). Body opcodes and semantics are unchanged.
