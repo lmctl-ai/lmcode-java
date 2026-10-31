@@ -14,6 +14,10 @@ public final class InvocationConformanceRunner {
    Map<String,Object> config=Json.object(InvocationJson.owned(read(args[1])));List<String> files=List.of(Arrays.copyOfRange(args,2,args.length));
    InvocationResults results=InvocationResults.fromCommand(files);Registry registry=new Registry();Context context=new Context();context.setDry(results.dry());long[] counter={0};
    registry.function("next_counter",List.of(),"int",(c,s,a)->Value.ofInt(++counter[0]));registry.function("entry_fail",List.of(),"void",(c,s,a)->{throw VmException.host("native entry failure");},Registry.dry((c,s,a)->{throw VmException.host("preview failed");}));
+   registry.function("wp90_Json",List.of(),"Json",(c,s,a)->{throw VmException.host("real dummy callback ran");});
+   registry.function("wp90_consume",List.of("Json"),"int",(c,s,a)->{throw VmException.host("real consumer ran");});
+   registry.method("Json","wp90_consume",List.of("Json"),"int",(c,s,a)->{throw VmException.host("real method ran");});
+   registry.method("Json","wp90_preview",List.of("Json"),"int",(c,s,a)->{throw VmException.host("real method ran");},Registry.dry((c,s,a)->{throw VmException.host("preview received dry null");}));
    byte[] schema=read(args[0]);ResultContract contract=ResultContract.fromSchema(schema);
    for(Object raw:Json.array(config.get("execution"))){int index=((Number)raw).intValue();String phase="load";
     try{
