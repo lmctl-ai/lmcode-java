@@ -21,3 +21,8 @@ ports the 24 invocation-result imports from C++ 3379c77, synchronized through
 14868f84188abaf46d094e61abd291013d9bae1e. The schema format/version is unchanged.
 Canonical generated declarations/docs are in std/ and docs/std.md. Hosts must
 bind a ResultSink explicitly; no standard region reset clears it.
+
+H3 keeps the 206 signatures and schema bytes unchanged while assigning dry
+callbacks explicitly. Pure functions, run-owned collection operations and return
+sink writers run on dry calls; regular-file reads opt in to the real callback.
+File writes/appends have no dry slot and therefore skip with a void dummy.

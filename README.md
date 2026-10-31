@@ -31,7 +31,7 @@ The SDK has no runtime dependencies beyond the JDK. It uses byte strings through
 
 ## Status
 
-Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. All 397 core and 268 standard-library vectors (206 canonical v3 signatures), plus nine invocation-result frame fixtures run on both JVM and native builds. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
+Version 0.1.1 implements bytecode v6 only; other bytecode versions are rejected. The current pins include 410 core vectors, 268 standard-library vectors (206 canonical v3 signatures), nine return fixtures, and 19 invocation-envelope goldens. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
 
 Linux builds target dynamic glibc with a minimum glibc version of 2.35. They do not support musl or alternate libc implementations. Linux C++ runtimes and zlib are static; glibc remains dynamic. Windows native executables use the Microsoft Visual C++ x64 runtime (`VCRUNTIME140.dll` and `VCRUNTIME140_1.dll`).
 
@@ -54,6 +54,8 @@ The checked-in CI matrix runs JVM and native conformance on Ubuntu 22.04 x64/arm
 ## Public API
 
 The public package is `io.lmctl.lmcode`. The main entry points are `Program.load(bytecode, schema, registry)`, `Program.run(context, registry)`, `Registry`, `Context`, `Value`, `VmString`, and `VmException`. `Stdlib.register(registry)` installs the standard catalog explicitly; the default `Registry` installs it automatically.
+
+`Registry.function` and `Registry.method` keep their existing real-callback forms and accept an optional final `Registry.dry(callback)` slot. During a dry invocation, a registration without a slot skips the real callback and returns a fresh dummy of its declared return type; an explicit slot runs once. `Context.dry()` reflects the collector mode. Hosts should set it from `InvocationResults.dry()` before running code. This gates registered callbacks only; it does not sandbox arbitrary host initialization or application code.
 
 The standard catalog (206 signatures) includes byte-oriented string operations, strict RFC 4648 Base64 and hex byte codecs, numeric parsing, math overloads, raw regular-file helpers, insertion-ordered string/int/float maps with independent `keys()`/`values()` snapshots, typed lists, typed stacks/queues/priority queues, immutable strict UTF-8 `Json` (`json_parse`), and optional testing helpers. Standard limits are deliberate: 64 MiB for string results, 2²⁷ glob work steps, 256 JSON container nesting depth, 65,536 collection/document objects per run, a 4 GiB context memory budget, and 10 million VM instructions by default.
 
@@ -125,6 +127,8 @@ when present, validates registrations before dispatch, and otherwise uses CLI or
 ```java
 InvocationResults results = InvocationResults.fromCommand(parsedFiles);
 Registry registry = new Registry();
+Context context = new Context();
+context.setDry(results.dry());
 for (var part : results.registrations()) {
     String phase = "load";
     try {
@@ -161,6 +165,12 @@ repeated emission even after output failure. `Reports.failureFrame` handles erro
 before collector construction. Sink-only framing and unframed report APIs were
 removed; there is no fallback protocol. VM execution never prints implicitly.
 
+Version 1 manifests require a boolean `dry` field. Dry success and failure envelopes
+append `"dry":true` after the existing fields; real envelopes omit it. A missing or
+nonboolean marker is a CLI failure, never a real-mode fallback. Standalone invocations
+without a manifest and embedded collectors created through `fromCommand(files)` are
+real; embedded hosts may pass the explicit dry mode overload.
+
 Schema 2 may declare `"result":{"type":"IntMap","nullable":false}`. No declaration
 allows any JSON including null; a declared type defaults to nonnullable. Contract
 checks are atomic on writes and enforced again on completion. Initial/reset null
@@ -174,8 +184,8 @@ nonzero-underflow checks. Floats retain **Double.toString** shortest round trips
 launcher-decoded Unicode argv; malformed Java strings and manifest UTF-8 bytes are
 refused, while original undecodable OS argv bytes are not recoverable from `String[]`.
 
-`mvn -q verify` runs four pinned corpus families, 14 canonical invocation goldens,
-19 malformed descriptor controls, ownership/numeric tests and compiled source
+`mvn -q verify` runs four pinned corpus families, 19 canonical invocation goldens,
+22 malformed descriptor controls, ownership/numeric tests and compiled source
 mutations. `RUN_NATIVE=1 ./test.sh` also runs the boundary and goldens in GraalVM
 Native Image. The ordinary SDK Greeter uses the new single envelope; external
 sample multi-program adapter adoption remains R7.

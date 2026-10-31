@@ -1,7 +1,7 @@
-# Invocation results and envelopes — R3 Java
+# Invocation results, envelopes and dry callbacks — Java
 
 Contract: skills-scripts/lmscript-track/designs/lmcode-exec-and-result-envelope-amendment.md.
-Canonical C++ reader/collector/contract and 14 native goldens: R1 main 3d353d2.
+Canonical C++ reader/collector/contract and offline goldens: H0 main 9525cac.
 This supersedes the former sink-only successful payload framing.
 
 `InvocationResults.fromCommand(List<String>)` consults the process environment
@@ -12,6 +12,34 @@ requires exact root/part keys, version 1, contiguous indices, unique absolute fi
 and a complete registration permutation. Descriptor order supplies canonical slot
 indices even when parsing reverses argv. Standalone CLI duplicates are separate
 occurrences; one-slot builder shape requires its descriptor.
+
+## Dry callback mode (H3)
+
+Registrations retain one real `Callback` plus an optional `Registry.DryCallback`.
+Register a preview with `function(..., real, Registry.dry(preview))` or the
+analogous method overload. The helper stores the supplied callback and does not
+run it. Without a dry slot, dispatch skips the real callback and creates a fresh
+dummy from the declared return type. `void` stays stack-neutral, booleans default
+true, numeric types default zero, strings are empty, typed lists/maps are new
+run-owned collections, and unknown/object types are internal provenance-marked
+dry nulls.
+
+`Context.dry()` is invocation-local. Hosts set it from `InvocationResults.dry()`
+before running body and entries. Dry-null is not a live host handle and cannot be
+passed to a function or entry argument; methods without a dry slot can skip it
+without dereference. An overridden method requires a real receiver. Result sink
+writes and run-owned std collection operations execute normally so `$return`
+contents are the actual dry-path values.
+
+Version 1 manifests require boolean `dry`. Collectors retain the mode and writers
+append `dry:true` after existing success/failure keys only for dry invocations.
+Missing or nonboolean mode is a CLI error with no guessed marker. A failure before
+collector construction carries the marker only if a valid dry value was parsed.
+Standalone commands default to real; embedded hosts may use
+`InvocationResults.fromCommand(files, true)`. File reads and existence checks use
+their declared dry-safe callbacks; file writes/appends are skipped with `void`
+dummies. Other pure, run-owned, result-sink and testing callbacks have explicit
+dry slots. This callback policy does not sandbox arbitrary host code.
 
 `select(index, registry, contract)` allocates a fresh sink per slot and permits
 active reselection without reset or contract changes. `complete(index)` validates,
@@ -51,10 +79,16 @@ UTF-16 strings before filesystem access and strict byte-based manifest UTF-8.
 It cannot recover original invalid OS argv bytes from a replacement character.
 
 The sync script and PinVerifier own all four corpus pins. Maven verify always runs
-compiled missing-seal, reused-sink, wrong-part, omitted-flush and additional faults;
-a compile failure/crash is not a caught fault. The golden harness executes real
-programs in one process, including reverse order, duplicate programs, shared host
+compiled missing-seal, reused-sink, wrong-part, omitted-flush, dry callback and
+fresh-dummy faults; a compile failure/crash is not a caught fault. The golden
+harness executes real programs in one process, including reverse order, duplicate programs, shared host
 counter, null/nested/list results, first failure and app failure. Native test.lms
 runs those same golden bytes via the hidden Greeter fixture entrypoint. Fixtures
 are generated/pinned from canonical source, never inferred from runtime stdout.
 External Java shop sample adoption is a separate R7 change.
+
+H3 adds shared byte goldens for dry single success, dry override failure and
+builder dry failure. `DryChecks` proves the real callback leaves a file sentinel
+absent, preview executes once, real mode remains unchanged, dummies are fresh,
+and std dry policies are deliberate. The production-copy controls catch fallback
+to real, double-call and shared-mutable-dummy faults.
