@@ -17,7 +17,10 @@ public final class InvocationMutationChecks {
    new Fault("missing completion","InvocationResults.java","if(!slots[i].completed)","if(false)","missing completion","envelope exit"),
    new Fault("swap add order","InvocationResults.java","ResultJson.encode(slots[i].result)","ResultJson.encode(slots[slots.length-1-i].result)","sink isolation","add order independent of completion"),
    new Fault("partial result after error","InvocationResults.java","if(failure!=null){json=","if(false){json=","first failure","envelope exit"),
-   new Fault("dropped field contract","ResultSink.java","contract.validate(next);root=next;","root=next;","contracts atomic","missing refusal: at /bad~1key~0: expected int; got null")
+   new Fault("dropped field contract","ResultSink.java","contract.validate(next);root=next;","root=next;","contracts atomic","missing refusal: at /bad~1key~0: expected int; got null"),
+   new Fault("dry fallback-to-real","Execution.java","v=Stdlib.dryDummy(ctx,b.returns);","v=b.callback.call(ctx,Value.none(),a);","dry callbacks","dry fallback-to-real wrote the sentinel"),
+   new Fault("dry callback twice","Execution.java","else v=b.dryCallback.callback.call(ctx,Value.none(),a);","else {v=b.dryCallback.callback.call(ctx,Value.none(),a);b.dryCallback.callback.call(ctx,Value.none(),a);}","dry callbacks","dry callback was skipped, doubled or followed by real callback"),
+   new Fault("shared mutable dry dummy","Stdlib.java","case \"IntList\"->StdCollections.obj(c,\"IntList\",new java.util.ArrayList<Long>());","case \"IntList\"->{Value cached=(Value)c.state().get(\"lmcode.std.dry.IntList\");if(cached==null){cached=StdCollections.obj(c,\"IntList\",new java.util.ArrayList<Long>());c.state().put(\"lmcode.std.dry.IntList\",cached);}yield cached;}","dry dummies","shared mutable IntList dummy")
   );
   Path java=Path.of(System.getProperty("java.home"),"bin",System.getProperty("os.name").startsWith("Windows")?"java.exe":"java");
   Path javac=java.resolveSibling(System.getProperty("os.name").startsWith("Windows")?"javac.exe":"javac");

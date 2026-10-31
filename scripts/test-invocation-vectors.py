@@ -18,7 +18,7 @@ for case in manifest['cases']:
    target=folder/f'part {index}-水.dslb';target.write_bytes(raw);files.append(str(target));parts.append({'index':index,'file':str(target)})
   env=dict(os.environ);env.pop('LMCODE_INVOCATION_FILE',None)
   if case['mode'] is not None:
-   path=folder/'invocation.json';path.write_text(json.dumps({'version':1,'mode':case['mode'],'parts':parts}));env['LMCODE_INVOCATION_FILE']=str(path)
+   path=folder/'invocation.json';path.write_text(json.dumps({'version':1,'mode':case['mode'],'dry':case.get('dry',False),'parts':parts}));env['LMCODE_INVOCATION_FILE']=str(path)
   else:files=[files[0]]*len(files) # standalone duplicate file occurrences are legal
   # Reverse parsed argv order too: canonical indices must come from metadata.
   parsed=files[::-1]if case['mode']is not None else files
@@ -33,12 +33,14 @@ print('PASS',len(manifest['cases']),'native invocation goldens')
 with tempfile.TemporaryDirectory(prefix='metadata-controls-')as temporary:
  folder=Path(temporary);a=folder/'a.dslb';b=folder/'b.dslb'
  a.write_bytes((HERE/'float.dslb').read_bytes());b.write_bytes(a.read_bytes())
- base={'version':1,'mode':'single','parts':[{'index':0,'file':str(a)}]}
+ base={'version':1,'mode':'single','dry':False,'parts':[{'index':0,'file':str(a)}]}
  variants=[]
  def add(name,fn):
   value=json.loads(json.dumps(base));fn(value);variants.append((name,json.dumps(value).encode(),[str(a)]))
  add('version',lambda v:v.update(version=2))
  add('mode',lambda v:v.update(mode='batch'))
+ add('missing-dry',lambda v:v.pop('dry'))
+ add('nonboolean-dry',lambda v:v.update(dry=1))
  add('empty',lambda v:v.update(parts=[]))
  add('unknown-root',lambda v:v.update(result={'type':'int'}))
  add('unknown-part',lambda v:v['parts'][0].update(contract='int'))
@@ -48,13 +50,14 @@ with tempfile.TemporaryDirectory(prefix='metadata-controls-')as temporary:
  add('negative',lambda v:v['parts'][0].update(index=-1))
  add('fractional',lambda v:v['parts'][0].update(index=0.5))
  add('unsafe',lambda v:v['parts'][0].update(index=9007199254740993))
- duplicate={'version':1,'mode':'builder','parts':[{'index':0,'file':str(a)},{'index':1,'file':str(a)}]}
+ duplicate={'version':1,'mode':'builder','dry':False,'parts':[{'index':0,'file':str(a)},{'index':1,'file':str(a)}]}
  variants.append(('duplicate-files',json.dumps(duplicate).encode(),[str(a),str(a)]))
- two={'version':1,'mode':'builder','parts':[{'index':0,'file':str(a)},{'index':1,'file':str(b)}]}
+ two={'version':1,'mode':'builder','dry':False,'parts':[{'index':0,'file':str(a)},{'index':1,'file':str(b)}]}
  variants.append(('duplicate-registration',json.dumps(two).encode(),[str(a),str(a)]))
  variants.append(('missing-registration',json.dumps(two).encode(),[str(a)]))
  variants.append(('extra-registration',json.dumps(base).encode(),[str(a),str(b)]))
  two['mode']='single';variants.append(('single-count',json.dumps(two).encode(),[str(a),str(b)]))
+ variants.append(('dry-known-invalid-parts',json.dumps({'version':1,'mode':'single','dry':True,'parts':[]}).encode(),[str(a)]))
  variants.append(('duplicate-key',json.dumps(base).replace('{','{"version":1,',1).encode(),[str(a)]))
  variants.append(('bom',b'\xef\xbb\xbf'+json.dumps(base).encode(),[str(a)]))
  variants.append(('utf8',b'\xff',[str(a)]))
@@ -64,7 +67,9 @@ with tempfile.TemporaryDirectory(prefix='metadata-controls-')as temporary:
   r=subprocess.run([*COMMAND,str(HERE/'schema.json'),str(HERE/'single-null.json'),*parsed],capture_output=True,env=env)
   assert r.returncode==2 and r.stderr==b'',(name,r)
   lines=r.stdout.splitlines();assert len(lines)==3 and lines[0]==b'LMCODE_RETURN_BEGIN' and lines[2]==b'LMCODE_RETURN_END',(name,r)
-  value=json.loads(lines[1]);assert set(value)=={'ok','phase','code','message'} and value['ok']is False and value['phase']=='cli' and value['code']=='CLI_USAGE',(name,value)
+  value=json.loads(lines[1]);expected_keys={'ok','phase','code','message'}|({'dry'} if name=='dry-known-invalid-parts' else set())
+  assert set(value)==expected_keys and value['ok']is False and value['phase']=='cli' and value['code']=='CLI_USAGE',(name,value)
+  if name=='dry-known-invalid-parts':assert value['dry']is True,(name,value)
  print('PASS',len(variants),'malformed private metadata controls')
  for malformed in ['', 'relative.json']:
   r=subprocess.run([*COMMAND,str(HERE/'schema.json'),str(HERE/'single-null.json'),str(a)],capture_output=True,env=dict(os.environ,LMCODE_INVOCATION_FILE=malformed))
