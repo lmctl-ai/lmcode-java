@@ -88,6 +88,9 @@ public final class Execution {
             case WHILE_TEST -> { int d=r.i32(); if(!pop(stack).asBool()) jump(r,d,p.code.length); }
             case LOOP_BACK -> jump(r,r.i32(),p.code.length);
           }
+        } catch (OutOfMemoryError failure) {
+          VmException error=VmException.host("allocation failed");
+          Program.Line line=p.lineOf(fault); if(line!=null)error.at(line); throw error;
         } catch (VmException e) { Program.Line line=p.lineOf(fault); if(line!=null)e.at(line); throw e; }
       }
       return Value.none();

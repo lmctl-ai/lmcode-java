@@ -22,6 +22,7 @@ public final class SelfTest {
     int checks = 0, failures = 0;
     try { checks++; EntryChecks.main(new String[0]); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; ResultSinkChecks.run(""); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; allocationError(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; strings(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; unboundedStringRepeat(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; unboundedStringReplace(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
@@ -189,6 +190,29 @@ public final class SelfTest {
     byte[] code={52,1,0,0,0,0,0,0,0,5,3,0,53,0,0,0,6,16,54,(byte)255,(byte)255,(byte)255,(byte)233,17};
     boolean rejected=false;try{Program.load(codeBytecode(code),new byte[0],new Registry(false));}catch(VmException e){rejected=e.code.equals("LOAD_BAD_BYTECODE")&&e.getMessage().contains("WHILE_TEST must leave");}
     require(rejected,"while condition must leave exactly its loop-head depth");
+  }
+  private static void allocationError() {
+    for (boolean dry : new boolean[]{false,true}) {
+      Registry r = new Registry(false);
+      Registry.Callback fail = (c,x,a) -> { throw new OutOfMemoryError("injected allocation rejection"); };
+      r.function("fail", List.of(), "void", fail, Registry.dry(fail));
+      byte[] image;
+      try {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(); DataOutputStream out = new DataOutputStream(bytes);
+        out.writeBytes("DSLB"); out.writeShort(6); out.write(MessageDigest.getInstance("SHA-256").digest(new byte[0]));
+        byte[] signature = "fn fail() -> void".getBytes(StandardCharsets.UTF_8);
+        out.writeInt(1); out.writeByte(1); out.writeInt(signature.length); out.write(signature);
+        out.writeShort(1); out.writeInt(0); out.writeShort(0); out.writeShort(0); out.writeShort(0);
+        out.writeInt(5); out.write(new byte[]{7,0,0,0,17});
+        out.writeInt(1); out.writeInt(0); out.writeInt(12); out.writeShort(8); out.writeShort(0); image=bytes.toByteArray();
+      } catch (Exception e) { throw new AssertionError(e); }
+      Program p = Program.load(image,new byte[0],r); Context c = new Context(); c.setDry(dry);
+      try { p.run(c,r); } catch (VmException e) {
+        if (e.code.equals("RUN_HOST") && e.getMessage().contains("allocation") && e.line==12) continue;
+        throw e;
+      }
+      throw new AssertionError("allocation must be a located SDK error");
+    }
   }
   private static byte[] codeBytecode(byte[] code) {
     try {
