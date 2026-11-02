@@ -28,5 +28,3 @@ fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,compileDsl(body.split('\n'),parseDslSchema(fs.readFileSync(schema),schema)).bytes);
 
 }
-
-}
