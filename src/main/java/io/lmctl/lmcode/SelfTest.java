@@ -83,6 +83,10 @@ public final class SelfTest {
         context, Value.none(), new Value[]{Value.ofString("x"), Value.ofString("x"), Value.ofString(replacement)});
     byte[] bytes = result.asString().bytes();
     require(bytes.length == size && bytes[0] == 'y' && bytes[bytes.length - 1] == 'y', "str_replace accepts result above 64 MiB");
+    VmString largeInput = new VmString(new byte[size]);
+    Value unchanged = registry.resolve("fn str_replace(string, string, string) -> string").callback.call(
+        context, Value.none(), new Value[]{Value.ofString(largeInput), Value.ofString(""), Value.ofString("y")});
+    require(unchanged.asString() == largeInput, "str_replace empty-search no-op accepts input above 64 MiB");
   }
 
   private static void unboundedStringMatch() {
