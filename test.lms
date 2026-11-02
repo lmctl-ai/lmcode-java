@@ -9,7 +9,7 @@ fn step(command, timeout) {
 step(["bash", "scripts/verify-jvm.sh"], 1200000);
 step(["java", "-cp", "target/classes", "io.lmctl.lmcode.examples.Greeter", "--lmcode", "examples/greeter/hello.dslb"], 30000);
 # The shell resolves npm's lmscript shim on Windows as well as Unix.
-step(["bash", "-c", "lmscript --no-preflight examples/rule-entries/rules.lms target/rule-entries.dslb"], 30000);
+step(["node", "scripts/compile-fixture.mjs", "examples/rule-entries/rules.lms", "target/rule-entries.dslb"], 30000);
 result = step(["java", "-cp", "target/classes", "io.lmctl.lmcode.examples.RuleEntries", "target/rule-entries.dslb", "examples/rule-entries/schema.json"], 30000);
 assert(trim(result.stdout) == "increment = 42", "rule interface result differs");
 if (env("RUN_NATIVE") == "1") {
