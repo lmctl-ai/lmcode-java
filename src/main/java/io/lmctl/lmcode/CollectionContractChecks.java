@@ -83,7 +83,7 @@ public final class CollectionContractChecks {
       call(r, "method IntPQ.clear() -> IntPQ", c, pq);
       require(state.nextSequence == 0 && state.items.isEmpty(), "PQ clear resets sequence to zero");
 
-      int beforeJson = StdCollections.arena(c).count;
+      long beforeJson = StdCollections.arena(c).count;
       boolean parseFailed = false;
       try {
         call(r, "fn json_parse(string) -> Json", c, s("[1,"));

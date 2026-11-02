@@ -23,6 +23,10 @@ public final class SelfTest {
     try { checks++; EntryChecks.main(new String[0]); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; ResultSinkChecks.run(""); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; strings(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; unboundedStringRepeat(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; unboundedStringReplace(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; unboundedStringMatch(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; unboundedCollectionObjects(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; formatting(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; registry(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; collections(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
@@ -52,6 +56,54 @@ public final class SelfTest {
     for(int i=0;i<256;i++)require(match.callback.call(context,Value.none(),new Value[]{Value.ofString(new VmString(new byte[]{(byte)i})),Value.ofString(pattern)}).asBool()==(i>=127&&i<=129),"glob ranges use unsigned bytes");
     require(!match.callback.call(context,Value.none(),new Value[]{Value.ofString("["),Value.ofString("[abc")}).asBool(),"unterminated class leaves remaining literal tokens");
     require(match.callback.call(context,Value.none(),new Value[]{Value.ofString("[abc"),Value.ofString("[abc")}).asBool(),"unterminated class is a literal bracket");
+  }
+
+  private static void unboundedStringRepeat() {
+    Registry registry = new Registry(); Context context = new Context();
+    long size = 64L * 1024 * 1024 + 1;
+    Value result = registry.resolve("fn str_repeat(string, int) -> string").callback.call(
+        context, Value.none(), new Value[]{Value.ofString("x"), Value.ofInt(size)});
+    byte[] bytes = result.asString().bytes();
+    require(bytes.length == size && bytes[0] == 'x' && bytes[bytes.length - 1] == 'x', "str_repeat accepts result above 64 MiB");
+    boolean overflow = false;
+    try {
+      registry.resolve("fn str_repeat(string, int) -> string").callback.call(
+          context, Value.none(), new Value[]{Value.ofString("x"), Value.ofInt(Long.MAX_VALUE)});
+    } catch (VmException e) {
+      overflow = "RUN_HOST".equals(e.code) && "str_repeat: result exceeds platform byte-array size".equals(e.getMessage());
+    }
+    require(overflow, "str_repeat keeps a clear platform byte-array size guard");
+  }
+
+  private static void unboundedStringReplace() {
+    Registry registry = new Registry(); Context context = new Context();
+    int size = 64 * 1024 * 1024 + 1;
+    String replacement = "y".repeat(size);
+    Value result = registry.resolve("fn str_replace(string, string, string) -> string").callback.call(
+        context, Value.none(), new Value[]{Value.ofString("x"), Value.ofString("x"), Value.ofString(replacement)});
+    byte[] bytes = result.asString().bytes();
+    require(bytes.length == size && bytes[0] == 'y' && bytes[bytes.length - 1] == 'y', "str_replace accepts result above 64 MiB");
+  }
+
+  private static void unboundedStringMatch() {
+    Registry registry = new Registry(); Context context = new Context();
+    String input = "[".repeat(16_384);
+    boolean result = registry.resolve("fn str_match(string, string) -> bool").callback.call(
+        context, Value.none(), new Value[]{Value.ofString(input), Value.ofString(input)}).asBool();
+    require(result, "str_match accepts input requiring more than 2^27 work steps");
+  }
+
+  private static void unboundedCollectionObjects() {
+    Registry registry = new Registry(); Context context = new Context();
+    Value[] live = new Value[65_537];
+    Registry.Binding constructor = registry.resolve("fn int_list() -> IntList");
+    registry.enterRun(context);
+    try {
+      for (int i = 0; i < live.length; i++)
+        live[i] = constructor.callback.call(context, Value.none(), new Value[0]);
+      require(live[0].kind == Value.Kind.OBJ && live[live.length - 1].kind == Value.Kind.OBJ,
+          "all 65537 collection objects remain live");
+    } finally { registry.exitRun(context); }
   }
 
   private static void formatting() {
