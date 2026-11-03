@@ -2,7 +2,6 @@ name: ci
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -14,10 +13,34 @@ permissions: {contents: read}
 env:
   LMCODE_COMPILER_VERSION: ${{ inputs.compiler_version || vars.LMCODE_COMPILER_VERSION || '0.2.456' }}
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
 jobs:
+  version:
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check release version calculation and stamp
+        run: python3 scripts/test-release-version.py
+      - id: version
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main ]]; then
+            version="$(bash scripts/derive-release-version.sh "$GITHUB_RUN_NUMBER")"
+            release=true
+          else
+            version="$(bash scripts/derive-release-version.sh --diagnostic)"
+            release=false
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "lmcode-java version $version (release=$release)"
   build:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -42,6 +65,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Stamp CI release version
+        shell: bash
+        run: bash scripts/stamp-version.sh "${{ needs.version.outputs.version }}"
       - uses: graalvm/setup-graalvm@27b360dbb857524eaf0b4c4cef364d38e5b4f173
         with: {java-version: '21', distribution: graalvm-community, cache: maven}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -99,11 +125,13 @@ jobs:
           name: lmcode-java-${{ matrix.name }}
           path: dist/*
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    if: needs.version.outputs.release == 'true'
+    needs: [version, build]
     runs-on: ubuntu-22.04
     permissions: {contents: write}
     timeout-minutes: 10
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with: {pattern: lmcode-java-*, path: release, merge-multiple: true}
@@ -117,4 +145,4 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: timeout 120 gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" release/lmcode-java-* release/SHA256SUMS --title "$GITHUB_REF_NAME" --generate-notes
+        run: scripts/publish-release.sh "v$RELEASE_VERSION" release

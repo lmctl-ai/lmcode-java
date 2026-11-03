@@ -18,7 +18,7 @@ if (env("RUN_NATIVE") == "1") {
   executable = path_join(Directory, "target/greeter");
   if (env("RUNNER_OS") == "Windows") { executable = executable + ".exe"; }
   result = step([executable, "--version"], 30000);
-  assert(trim(result.stdout) == "lmcode-java 0.1.1", "native version differs");
+  assert(trim(result.stdout) == "lmcode-java " + trim(read_file("VERSION")), "native version differs");
   result = step([executable, "--lmcode-schema", "--json"], 30000);
   assert(result.stdout == read_file("src/main/resources/greeter.schema.json"), "native schema differs");
   result = step([executable, "--notices"], 30000);
