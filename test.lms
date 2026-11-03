@@ -6,6 +6,7 @@ fn step(command, timeout) {
   assert(result.code == 0 && !result.timed_out, "verification failed: " + json_stringify(command));
   return result;
 }
+step(["java", "scripts/LauncherUtf8Probe.java", "水é😀"], 0);
 step(["bash", "scripts/verify-jvm.sh"], 1200000);
 step(["java", "-cp", "target/classes", "io.lmctl.lmcode.examples.Greeter", "--lmcode", "examples/greeter/hello.dslb"], 30000);
 # The shell resolves npm's lmscript shim on Windows as well as Unix.

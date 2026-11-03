@@ -195,3 +195,10 @@ See [the ownership guide](durable-memory/09-invocation-results.md) and
 ## Historical literal names
 
 The documentation calls the language lmcode. `--lmcode`, `--lmcode-schema` and `--lmcode-signatures` are current host flag literals; `DSLB` is the bytecode magic and `DSLB v6` is the current format name; `.dslb` is the current bytecode filename extension; `dsl.schema` is the current schema JSON key. Other code-formatted API names, paths, manifest names and diagnostic text retain their current literal spellings.
+
+Windows JVM qualification uses the per-process UTF-8 launcher manifest configured
+by scripts/configure-windows-utf8.ps1 on isolated Actions runners. JDK21 otherwise
+converts native argv through the ANSI code page before the SDK sees it; file.encoding
+and console settings do not recover lost filename characters. The unmodified Unicode
+invocation goldens and LauncherUtf8Probe remain hard checks. This does not change
+the machine locale or normalize metadata file names.

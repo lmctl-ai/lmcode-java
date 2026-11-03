@@ -70,6 +70,10 @@ jobs:
       - name: MSVC environment
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Preserve Unicode JVM argv
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/configure-windows-utf8.ps1
       - name: JVM conformance
         shell: bash
         run: lmscript test.lms
