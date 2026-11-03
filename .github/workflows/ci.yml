@@ -9,10 +9,10 @@ on:
       compiler_version:
         description: "Published @lmctl-ai/lmctl version"
         required: false
-        default: "0.2.450"
+        default: "0.2.456"
 permissions: {contents: read}
 env:
-  LMCODE_COMPILER_VERSION: ${{ inputs.compiler_version || vars.LMCODE_COMPILER_VERSION || '0.2.450' }}
+  LMCODE_COMPILER_VERSION: ${{ inputs.compiler_version || vars.LMCODE_COMPILER_VERSION || '0.2.456' }}
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -72,10 +72,10 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       - name: JVM conformance
         shell: bash
-        run: lmscript --no-preflight test.lms
+        run: lmscript test.lms
       - name: Native conformance
         shell: bash
-        run: RUN_NATIVE=1 lmscript --no-preflight test.lms
+        run: RUN_NATIVE=1 lmscript test.lms
       - name: Linkage policy
         shell: bash
         run: |

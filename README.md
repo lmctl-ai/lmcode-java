@@ -99,7 +99,7 @@ Core and stdlib pins track the same C++ reference corpus; sample repos migrate s
 npm install -g @lmctl-ai/lmctl
 lmctl test.lms
 # Equivalent: lmscript test.lms
-RUN_NATIVE=1 lmscript --no-preflight test.lms
+RUN_NATIVE=1 lmscript test.lms
 ```
 
 The package installs both executables. Both run `.lms` files; `lmctl` also
