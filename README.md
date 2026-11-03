@@ -202,3 +202,7 @@ converts native argv through the ANSI code page before the SDK sees it; file.enc
 and console settings do not recover lost filename characters. The unmodified Unicode
 invocation goldens and LauncherUtf8Probe remain hard checks. This does not change
 the machine locale or normalize metadata file names.
+
+Native-image Windows builds merge scripts/windows-utf8.manifest at link time, so
+the distributed host also preserves Unicode argv. The native invocation goldens
+remain unchanged and exercise the same water-character paths as the JVM.
