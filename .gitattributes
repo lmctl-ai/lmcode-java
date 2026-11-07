@@ -2,3 +2,6 @@
 *.dslb binary
 *.png binary
 *.gif binary
+
+# REST conformance fixtures are byte-exact (no EOL conversion on Windows checkouts).
+/conformance/rest-suite/** -text

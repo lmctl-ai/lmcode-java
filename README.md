@@ -29,6 +29,8 @@ Java 21 SDK and host runtime for lmcode bytecode. It loads the same DSLB format 
 
 The SDK has no runtime dependencies beyond the JDK. It uses byte strings throughout: `VmString` preserves arbitrary bytes, including invalid UTF-8 and embedded NUL bytes. Standard functions are registered by the default `Registry`; `new Registry(false)` creates an empty host registry.
 
+An opt-in `rest` module serves HTTP/1.1 over stdin/stdout (no sockets); see [docs/rest.md](docs/rest.md). It is not part of the default registry.
+
 ## Status
 
 The current release implements bytecode v6 only; other bytecode versions are rejected. The current pins include 410 core vectors, 268 standard-library vectors (206 canonical v3 signatures), nine return fixtures, and 19 invocation-envelope goldens. Building native executables requires GraalVM CE 21; running a released native greeter does not require a JVM.
