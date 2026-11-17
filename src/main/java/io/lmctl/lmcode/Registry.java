@@ -14,14 +14,19 @@ public final class Registry {
  private ResultSink resultSink;
  public Registry setResultSink(ResultSink sink){resultSink=sink;return this;}
  ResultSink resultSink(){if(resultSink==null)throw VmException.host("lmcode return: no result sink");return resultSink;}
- private final Map<String,Binding> bindings=new HashMap<>();private final Map<String,String> contexts=new HashMap<>();private final Set<String> builtins=new HashSet<>();private boolean registeringBuiltins,defaultCollections,active;
+ private final Map<String,Binding> bindings=new HashMap<>();private final Map<String,String> contexts=new HashMap<>();private final Set<String> builtins=new HashSet<>();private boolean registeringBuiltins,compatibilityRegistration,defaultCollections,active;
+ public java.util.function.BiFunction<Program,Context,Boolean> beforeBodyRun;
+ public Runnable afterBodyRun;
  public Registry(){this(true);} public Registry(boolean includeStd){if(includeStd)Stdlib.register(this);}
  private Registry add(String type,String name,List<String> params,String returns,Callback callback,DryCallback dry){
  if(callback==null)throw new VmException("LOAD_UNBOUND","registry: "+(type==null?"function "+name:"method "+type+"."+name)+" callback is empty");
  if(dry!=null&&dry.callback==null)throw new VmException("LOAD_UNBOUND","registry: dry "+(type==null?"function "+name:"method "+type+"."+name)+" callback is empty");
  Binding b=new Binding(type,name,params,returns,callback,dry);String canonical=b.canonical();
  if(registeringBuiltins&&builtins.contains(canonical))return this;
- for(Binding old:bindings.values())if(Objects.equals(old.type,type)&&old.name.equals(name)&&old.parameters.equals(params))throw new VmException("LOAD_UNBOUND","registry: "+(type==null?"function":"method")+" '"+(type==null?name:type+"."+name)+"("+String.join(", ",params)+") -> "+returns+"' is registered twice");
+ for(Binding old:bindings.values())if(Objects.equals(old.type,type)&&old.name.equals(name)&&old.parameters.equals(params)){
+  if(!builtins.contains(canonical)||!compatibilityRegistration)throw new VmException("LOAD_UNBOUND","registry: "+(type==null?"function":"method")+" '"+(type==null?name:type+"."+name)+"("+String.join(", ",params)+") -> "+returns+"' is registered twice");
+  bindings.put(canonical,b);return this;
+ }
  bindings.put(canonical,b);if(registeringBuiltins)builtins.add(canonical);return this;}
  public Registry function(String name,List<String> params,String returns,Callback cb){return add(null,name,params,returns,cb,null);}
  public Registry function(String name,List<String> params,String returns,Callback cb,DryCallback dry){if(dry==null)throw new VmException("LOAD_UNBOUND","registry: dry function "+name+" callback is empty");return add(null,name,params,returns,cb,dry);}
@@ -35,7 +40,8 @@ public final class Registry {
  public void checkSchemaSignatures(Collection<String> signatures){Set<String> wanted=new TreeSet<>(signatures);wanted.addAll(builtins);Set<String> actual=new TreeSet<>(signatures());if(!actual.equals(wanted)){Set<String> missing=new TreeSet<>(wanted);missing.removeAll(actual);Set<String> extra=new TreeSet<>(actual);extra.removeAll(wanted);throw new VmException("LOAD_UNBOUND","registry schema signatures differ: missing ["+String.join(", ",missing)+"], extra ["+String.join(", ",extra)+"]");}}
  public void checkSchemaSignatures(byte[] schema){checkSchemaSignatures(SchemaSignatures.from(schema));}
  public boolean matchesSchemaSignatures(Collection<String> s){try{checkSchemaSignatures(s);return true;}catch(VmException e){return false;}}
- public void beginBuiltinRegistration(){registeringBuiltins=true;} public void endBuiltinRegistration(){registeringBuiltins=false;} public void markDefaultCollections(){defaultCollections=true;}
+ public void beginBuiltinRegistration(){registeringBuiltins=true;} public void endBuiltinRegistration(){registeringBuiltins=false;} public void beginCompatibilityRegistration(){compatibilityRegistration=true;} public void endCompatibilityRegistration(){compatibilityRegistration=false;} public void markDefaultCollections(){defaultCollections=true;}
+ synchronized boolean isActive(){return active;}
  synchronized void enterRun(Context ctx){if(active)throw VmException.host("registry run is already active");active=true;try{if(defaultCollections)Stdlib.beginRun(ctx);}catch(RuntimeException e){active=false;throw e;}}
  synchronized void exitRun(Context ctx){try{if(defaultCollections)Stdlib.endRun(ctx);}finally{active=false;}}
 }

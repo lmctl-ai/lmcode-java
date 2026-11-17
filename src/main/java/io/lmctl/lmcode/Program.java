@@ -82,7 +82,15 @@ public final class Program {
     Rule rule=rules.get(entry);int expected=rule.entry().params().size();
     if(args.size()!=expected)throw VmException.host("call entry '"+rule.entry().name()+"' expects "+expected+" argument(s); found "+args.size());
     for(Value argument:args)if(argument.kind==Value.Kind.DRY_NULL)throw VmException.host("invalid dry null provenance in entry arguments");
-    return Execution.execute(rule.region(),context,registry,args,!rule.entry().returns().equals("void"));
+    return Execution.execute(rule.region(),context,registry,args,!rule.entry().returns().equals("void"),true);
+  }
+  public Value callIsolated(int entry,Context context,Registry registry,List<Value> args){
+    if(entry<0||entry>=rules.size())throw VmException.host("call entry index "+entry+" out of range ("+rules.size()+" entries)");
+    Rule rule=rules.get(entry);int expected=rule.entry().params().size();
+    if(args.size()!=expected)throw VmException.host("call entry '"+rule.entry().name()+"' expects "+expected+" argument(s); found "+args.size());
+    for(Value argument:args)if(argument.kind==Value.Kind.DRY_NULL)throw VmException.host("invalid dry null provenance in entry arguments");
+    Registry owner=rule.region().boundRegistry!=null?rule.region().boundRegistry:registry;
+    return Execution.execute(rule.region(),context,registry,args,!rule.entry().returns().equals("void"),!owner.isActive());
   }
 
   private String ident(int i,String what){if(i<0||i>=consts.size()) throw VmException.badBytecode(what+": constant index "+i+" out of range ("+consts.size()+" constants)"); try{return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(consts.get(i).bytes())).toString();}catch(CharacterCodingException e){throw new VmException("LOAD_UNBOUND",what+" is not a valid UTF-8 schema identifier");}}

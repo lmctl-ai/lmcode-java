@@ -6,12 +6,19 @@ import java.util.*;
 public final class Execution {
   private Execution() {}
 
-  public static void run(Program p, Context ctx, Registry registry) { execute(p,ctx,registry,List.of(),false); }
-
-  static Value execute(Program p, Context ctx, Registry registry,List<Value> arguments,boolean captureResult) {
+  public static void run(Program p, Context ctx, Registry registry) {
     Registry owner = p.boundRegistry != null ? p.boundRegistry : registry;
-    owner.enterRun(ctx);
-    ctx.resetBudget();
+    boolean autoRest = !ctx.dry() && owner.beforeBodyRun != null && Boolean.TRUE.equals(owner.beforeBodyRun.apply(p, ctx));
+    execute(p, ctx, registry, List.of(), false, true);
+    if (autoRest && owner.afterBodyRun != null) owner.afterBodyRun.run();
+  }
+
+  static Value execute(Program p, Context ctx, Registry registry, List<Value> arguments, boolean captureResult, boolean enterRun) {
+    Registry owner = p.boundRegistry != null ? p.boundRegistry : registry;
+    if (enterRun) {
+      owner.enterRun(ctx);
+      ctx.resetBudget();
+    }
     try {
       ArrayList<Value> stack = new ArrayList<>(Math.min(p.maxStack,256));
       ctx.charge((long)p.locals.size()*16+Math.min(p.maxStack,256)*8L);
@@ -94,7 +101,7 @@ public final class Execution {
         } catch (VmException e) { Program.Line line=p.lineOf(fault); if(line!=null)e.at(line); throw e; }
       }
       return Value.none();
-    } finally { owner.exitRun(ctx); }
+    } finally { if (enterRun) owner.exitRun(ctx); }
   }
 
   private static VmException error(String s){return new VmException("RUN_ERROR",s);}

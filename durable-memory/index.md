@@ -32,3 +32,4 @@ Releases are cut via GitHub Actions when pushing a version tag `v*`, producing 5
 - [08-lmscript-tests.md](08-lmscript-tests.md): lmscript test entry point, annotated interface example and native sample release convention.
 
 | [09-invocation-results.md](09-invocation-results.md) | Invocation-owned results, framing and numeric boundary |
+| [10-std-rest-and-cli-interfaces.md](10-std-rest-and-cli-interfaces.md) | `lmcode_std_v3` 226 signatures, `RestGet`..`RestOptions` / `RestHandler` / `CliCommand` / `CliOption`, `:param` route syntax, `rest_config`, and `rest_cli` |

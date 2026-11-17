@@ -10,7 +10,7 @@ public final class Stdlib {
   static Registry dryRealFunction(Registry r,String name,java.util.List<String> params,String returns,Registry.Callback callback){return r.function(name,params,returns,callback,Registry.dry(callback));}
   public static void register(Registry r) {
     r.beginBuiltinRegistration();
-    try { StdString.register(r); StdMath.register(r); StdCollections.register(r, true); StdContainers.register(r); StdJson.register(r); StdFile.register(r); StdReturn.register(r); }
+    try { StdString.register(r); StdMath.register(r); StdCollections.register(r, true); StdContainers.register(r); StdJson.register(r); StdFile.register(r); StdReturn.register(r); io.lmctl.lmcode.rest.Rest.registerRest(r); }
     finally { r.endBuiltinRegistration(); }
   }
   public static void registerTesting(Registry r, OutputStream out) {

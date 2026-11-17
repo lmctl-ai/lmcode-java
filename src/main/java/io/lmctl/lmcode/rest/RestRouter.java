@@ -14,6 +14,7 @@ public final class RestRouter {
   public static final List<String> METHODS = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS");
   private static final Pattern NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
   private static final Pattern PLACEHOLDER = Pattern.compile("^\\{(.*?)(\\.\\.\\.)?\\}\\z", Pattern.DOTALL);
+  private static final Pattern COLON_PLACEHOLDER = Pattern.compile("^:(.*?)(\\.\\.\\.)?\\z", Pattern.DOTALL);
 
   public enum Kind { LITERAL, PARAM, REST }
 
@@ -70,17 +71,25 @@ public final class RestRouter {
       boolean last = index == raw.length - 1;
       if (text.isEmpty() && !last) throw invalid(label, "empty segment ('//')");
       var m = PLACEHOLDER.matcher(text);
+      var cm = COLON_PLACEHOLDER.matcher(text);
       Segment segment;
-      if (!m.find()) {
-        if (text.indexOf('{') >= 0 || text.indexOf('}') >= 0) throw invalid(label, "malformed placeholder in segment '" + text + "'");
-        segment = new Segment(Kind.LITERAL, text);
-      } else {
+      if (m.find()) {
         String name = m.group(1);
         boolean rest = m.group(2) != null;
         if (!NAME.matcher(name).matches()) throw invalid(label, "invalid parameter name '" + name + "'");
         if (!names.add(name)) throw invalid(label, "duplicate parameter '" + name + "'");
         if (rest && !last) throw invalid(label, "'{" + name + "...}' must be the last segment");
         segment = new Segment(rest ? Kind.REST : Kind.PARAM, name);
+      } else if (cm.find()) {
+        String name = cm.group(1);
+        boolean rest = cm.group(2) != null;
+        if (!NAME.matcher(name).matches()) throw invalid(label, "invalid parameter name '" + name + "'");
+        if (!names.add(name)) throw invalid(label, "duplicate parameter '" + name + "'");
+        if (rest && !last) throw invalid(label, "':" + name + "...' must be the last segment");
+        segment = new Segment(rest ? Kind.REST : Kind.PARAM, name);
+      } else {
+        if (text.indexOf('{') >= 0 || text.indexOf('}') >= 0) throw invalid(label, "malformed placeholder in segment '" + text + "'");
+        segment = new Segment(Kind.LITERAL, text);
       }
       segments.add(segment);
       if (index > 0) shape.append('/');

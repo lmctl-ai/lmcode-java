@@ -308,18 +308,45 @@ public final class RestChecks {
     });
 
     // ---- unit: registration and exchange rules ----
-    test("registration: exactly the 18 declared signatures, absent from the default registry", () -> {
+    test("registration: all 20 declared signatures are in the default registry and bare registerRest", () -> {
       Registry plain = new Registry();
       int before = plain.signatures().size();
-      equal(before, 206, "default catalog is unchanged");
-      check(plain.signatures().stream().noneMatch(x -> x.contains("rest_") || x.contains("RestExchange")), "no rest in default registry");
+      equal(before, 226, "default catalog has 226 signatures");
       List<String> declared = SchemaSignatures.from(Files.readAllBytes(SUITE.resolve("host.schema.json")));
-      equal(declared.size(), 18, "declared signatures");
+      equal(declared.size(), 20, "declared signatures");
+      equal(plain.signatures().stream().filter(x -> x.contains("rest_") || x.contains("RestExchange")).toList(), declared, "registered = declared");
       Rest.registerRest(plain);
       equal(plain.signatures().stream().filter(x -> x.contains("rest_") || x.contains("RestExchange")).toList(), declared, "registered = declared");
-      equal(plain.signatures().size(), 224, "206 + 18");
-      equal(plain.stdSignatures().size(), 206, "std signatures untouched");
+      equal(plain.signatures().size(), 226, "226");
+      equal(plain.stdSignatures().size(), 226, "std signatures");
       plain.checkSchemaSignatures(Files.readAllBytes(SUITE.resolve("host.schema.json")));
+      Registry bare = new Registry(false);
+      Rest.registerRest(bare);
+      equal(bare.signatures().size(), 20, "bare registerRest");
+    });
+    test("annotated std interfaces and colon params auto-register routes and support stateless CLI", () -> {
+      Route colon = RestRouter.parseRoute("GET", "/users/:id/files/:path...");
+      equal(colon.segments.size(), 4, "segments");
+      equal(colon.segments.get(1).kind(), Kind.PARAM, "param kind");
+      equal(colon.segments.get(1).value(), "id", "param name");
+      equal(colon.segments.get(3).kind(), Kind.REST, "rest kind");
+      equal(colon.segments.get(3).value(), "path", "rest name");
+
+      RestController c = controllerWith(
+        entry("/items/:id", RestController.REST_GET_INTERFACE, "get_item"),
+        entry("/items", RestController.REST_POST_INTERFACE, "post_item"),
+        entry("DELETE /items/:id", RestController.HANDLER_INTERFACE, "del_item"),
+        entry("status", RestController.CLI_COMMAND_INTERFACE, "cmd_status"),
+        entry("--verbose", RestController.CLI_OPTION_INTERFACE, "opt_verbose")
+      );
+      c.config("prefix", "/api");
+      c.serve();
+      check(c.serving(), "serving");
+      equal(c.table.match("GET", "/api/items/42").status(), 0, "GET /api/items/42");
+      equal(c.table.match("GET", "/api/items/42").params().get("id"), "42", "id=42");
+      equal(c.table.match("POST", "/api/items").status(), 0, "POST /api/items");
+      equal(c.table.match("DELETE", "/api/items/42").status(), 0, "DELETE /api/items/42");
+      equal(c.table.match("GET", "/api/status").status(), 0, "GET /api/status");
     });
     test("serve validation happens before any byte is read", () -> {
       RestController none = controllerWith();
@@ -458,6 +485,21 @@ public final class RestChecks {
       Properties lock = new Properties();
       try (var in = Files.newInputStream(Path.of("rest-suite.lock"))) { lock.load(in); }
       equal(RestSuitePin.digest(SUITE), lock.getProperty("sha256"), "digest");
+    });
+    test("stdio: annotated REST interfaces, colon params, and rest_cli dispatch against app.dslb", () -> {
+      Registry registry = suiteRegistry();
+      RestController rest = Rest.registerRest(registry, new RestOptions().input(new ByteArrayInputStream(new byte[0])).output(new ByteArrayOutputStream()));
+      rest.run(Program.load(Files.readAllBytes(SUITE.resolve("app.dslb")), Files.readAllBytes(SUITE.resolve("host.schema.json")), registry), new Context());
+      Response rItem = rest.dispatch(new Request("GET", "/items/42/detail", List.of(), new byte[0]));
+      equal(rItem.status(), 200, "item status"); equal(latin1(rItem.body()), "item:42", "item body");
+      Response rAget = rest.dispatch(new Request("GET", "/annotated/get/world", List.of(), new byte[0]));
+      equal(rAget.status(), 200, "aget status"); equal(latin1(rAget.body()), "annotated-get:world", "aget body");
+      Response rApost = rest.dispatch(new Request("POST", "/annotated/post", List.of(), bytes("hello")));
+      equal(rApost.status(), 201, "apost status"); equal(latin1(rApost.body()), "annotated-post:hello", "apost body");
+      Response rAhand = rest.dispatch(new Request("GET", "/annotated/handler/ping", List.of(), new byte[0]));
+      equal(rAhand.status(), 200, "ahand status"); equal(latin1(rAhand.body()), "annotated-handler:GET:ping", "ahand body");
+      Response rCli = rest.dispatch(new Request("POST", "/cli-run", List.of(), bytes("--format=json scan -- item1")));
+      equal(rCli.status(), 200, "cli status"); equal(latin1(rCli.body()), "cli:scan:json:item1", "cli body");
     });
   }
 }

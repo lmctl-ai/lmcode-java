@@ -59,7 +59,7 @@ public final class CollectionContractChecks {
 
   private static void v2ContainersAndJsonContracts() {
     Registry r = new Registry(true);
-    require(r.stdSignatures().size() == 206, "expected 206 std signatures, got " + r.stdSignatures().size());
+    require(r.stdSignatures().size() == 226, "expected 226 std signatures, got " + r.stdSignatures().size());
     Context c = new Context();
     Value borrowedJson;
     r.enterRun(c);
