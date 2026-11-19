@@ -1,5 +1,7 @@
 # lmcode-java
 
+Documentation: [Quick reference](https://www.lmctl.com/tools/lmcode-java/) | [LLM skill](https://www.lmctl.com/tools/lmcode-java/skill.html) | [Guide](https://www.lmctl.com/tools/lmcode-java/guide.html) | [Reference](https://www.lmctl.com/tools/lmcode-java/reference.html)
+
 Java 21 bytecode SDK: the same program on a JVM or a native executable.
 
 ## Install lmctl
