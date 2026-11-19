@@ -295,9 +295,9 @@ final class StdJson {
 
   private static void emit(Node n, ByteArrayOutputStream out) {
     switch (n.kind) {
-      case NULL -> out.writeBytes(LIT_NULL);
-      case BOOL -> out.writeBytes(n.booleanValue ? LIT_TRUE : LIT_FALSE);
-      case INT, FLOAT, STRING -> out.writeBytes(n.raw.bytes());
+      case NULL -> out.write(LIT_NULL, 0, LIT_NULL.length);
+      case BOOL -> { byte[] value = n.booleanValue ? LIT_TRUE : LIT_FALSE; out.write(value, 0, value.length); }
+      case INT, FLOAT, STRING -> { byte[] value = n.raw.bytes(); out.write(value, 0, value.length); }
       case ARRAY -> {
         out.write('[');
         for (int i = 0; i < n.array.size(); i++) {
@@ -311,7 +311,8 @@ final class StdJson {
         for (int i = 0; i < n.object.size(); i++) {
           if (i > 0) out.write(',');
           Member m = n.object.get(i);
-          out.writeBytes(m.rawKey.bytes());
+          byte[] key = m.rawKey.bytes();
+          out.write(key, 0, key.length);
           out.write(':');
           emit(m.value, out);
         }

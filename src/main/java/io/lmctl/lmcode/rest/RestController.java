@@ -62,9 +62,13 @@ public final class RestController {
     Exchange(RestController controller) { this(controller, new Request("GET", "/", List.of(), new byte[0]), Map.of(), Map.of(), "/"); }
     String requestHeaders(String name) {
       String wanted = RestHttp.lower(name);
-      StringJoiner out = new StringJoiner(", ");
+      StringBuilder out = new StringBuilder();
       boolean any = false;
-      for (Header h : request.headers()) if (RestHttp.lower(h.name()).equals(wanted)) { out.add(h.value()); any = true; }
+      for (Header h : request.headers()) if (RestHttp.lower(h.name()).equals(wanted)) {
+        if (any) out.append(", ");
+        out.append(h.value());
+        any = true;
+      }
       return any ? out.toString() : null;
     }
   }

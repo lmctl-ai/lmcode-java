@@ -119,11 +119,12 @@ public final class RestRouter {
       Segment s = segs.get(i);
       if (s.kind() == Kind.REST) {
         if (raw.length <= i) return null;
-        StringJoiner parts = new StringJoiner("/");
+        StringBuilder parts = new StringBuilder();
         for (int j = i; j < raw.length; j++) {
           String d = percentDecode(raw[j], false);
           if (d == null) return null;
-          parts.add(d);
+          if (j > i) parts.append('/');
+          parts.append(d);
         }
         params.put(s.value(), parts.toString());
         return params;

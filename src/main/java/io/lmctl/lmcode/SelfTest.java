@@ -21,6 +21,7 @@ public final class SelfTest {
   public static int runTests() {
     int checks = 0, failures = 0;
     try { checks++; EntryChecks.main(new String[0]); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
+    try { checks++; sha256(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; ResultSinkChecks.run(""); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; allocationError(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     try { checks++; strings(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
@@ -37,6 +38,16 @@ public final class SelfTest {
     try { checks++; CollectionContractChecks.run(); } catch (Throwable e) { failures++; e.printStackTrace(System.err); }
     System.out.println(failures == 0 ? "PASS " + checks : "FAIL " + failures + "/" + checks);
     return failures;
+  }
+
+  private static void sha256() throws Exception {
+    for (String input : List.of("", "abc", "TeaVM LMCode schema binding")) {
+      byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+      require(Arrays.equals(Sha256.digest(bytes), MessageDigest.getInstance("SHA-256").digest(bytes)), "SHA-256 text vector");
+    }
+    byte[] bytes = new byte[1000];
+    for (int i = 0; i < bytes.length; i++) bytes[i] = (byte)(i * 31 + 7);
+    require(Arrays.equals(Sha256.digest(bytes), MessageDigest.getInstance("SHA-256").digest(bytes)), "SHA-256 multi-block vector");
   }
 
   private static void strings() {

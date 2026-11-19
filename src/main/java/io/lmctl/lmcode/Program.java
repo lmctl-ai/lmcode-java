@@ -4,8 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public final class Program {
@@ -95,7 +93,7 @@ public final class Program {
 
   private String ident(int i,String what){if(i<0||i>=consts.size()) throw VmException.badBytecode(what+": constant index "+i+" out of range ("+consts.size()+" constants)"); try{return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(consts.get(i).bytes())).toString();}catch(CharacterCodingException e){throw new VmException("LOAD_UNBOUND",what+" is not a valid UTF-8 schema identifier");}}
   private static void bounded(long n,int bytes,String what){if(n>bytes)throw VmException.badBytecode(what+" table has too many entries: "+n);}
-  private static byte[] sha256(byte[] x){try{return MessageDigest.getInstance("SHA-256").digest(x);}catch(NoSuchAlgorithmException e){throw new AssertionError(e);}}
+  private static byte[] sha256(byte[] x){return Sha256.digest(x);}
   private static String hex(byte[] b){StringBuilder s=new StringBuilder(); for(byte x:b)s.append(String.format(Locale.ROOT,"%02x",x)); return s.toString();}
   public int constantCount(){return consts.size();} public int importCount(){return imports.size();} public int localCount(){return locals.size();} public int codeSize(){return code.length;} public int maxStack(){return maxStack;}
   public List<Local> locals(){return List.copyOf(locals);} public List<Line> lines(){return List.copyOf(lines);}

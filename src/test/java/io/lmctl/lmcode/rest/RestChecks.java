@@ -233,6 +233,8 @@ public final class RestChecks {
       equal(t.match("GET", "/x/a/z").route().annotation, "param-z", "a/z");
       equal(t.match("GET", "/x/a/b").route().annotation, "param-param", "a/b");
       equal(t.match("GET", "/x/a/b/c").route().annotation, "rest", "a/b/c");
+      equal(t.match("GET", "/x//a").params().get("rest"), "/a", "leading empty rest segment");
+      equal(t.match("GET", "/x///a").params().get("rest"), "//a", "multiple leading empty rest segments");
       equal(t.match("GET", "/x/").route().annotation, "rest", "x/");
       equal(t.match("GET", "/x").status(), 404, "x");
     });
@@ -383,6 +385,11 @@ public final class RestChecks {
       RestController c = Rest.registerRest(registry);
       RestController.Exchange x = new RestController.Exchange(c);
       Value self = Value.object("RestExchange", x);
+      RestController.Exchange emptyHeader = new RestController.Exchange(c,
+          new Request("GET", "/", List.of(new Header("X-Empty", "")), new byte[0]), Map.of(), Map.of(), "/");
+      Value emptySelf = Value.object("RestExchange", emptyHeader);
+      check(call(registry, "method RestExchange.has_header(string) -> bool", emptySelf, s("X-Empty")).asBool(), "present empty request header");
+      equal(call(registry, "method RestExchange.header(string) -> string", emptySelf, s("X-Empty")).asString().toString(), "", "empty request header value");
       throwsHost(() -> call(registry, "method RestExchange.status(int) -> void", self, Value.ofInt(199)), "rest: status 199 out of range 200..599", "199");
       throwsHost(() -> call(registry, "method RestExchange.status(int) -> void", self, Value.ofInt(600)), "out of range", "600");
       call(registry, "method RestExchange.status(int) -> void", self, Value.ofInt(599));
